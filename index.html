@@ -76,6 +76,16 @@
     background: var(--panel); border: 1px solid var(--line); border-radius: 999px;
     padding: 6px 12px;
   }
+  .compass {
+    position: fixed;
+    top: calc(14px + env(safe-area-inset-top, 0px));
+    left: max(16px, env(safe-area-inset-left, 0px));
+    width: 56px; height: 56px; border-radius: 50%;
+    background: var(--panel); border: 1px solid var(--line);
+    display: grid; place-items: center;
+  }
+  .compass svg { grid-area: 1 / 1; transition: none; }
+  .compass span { grid-area: 1 / 1; font-size: 10px; font-weight: 700; color: var(--fg); transform: translateY(-1px); pointer-events: none; }
   @media (max-width: 520px) { .hint { display: none; } }
 </style>
 
@@ -85,7 +95,7 @@
   <header>
     <span class="eyebrow">EXTERIOR PERSPECTIVE</span>
     <h1>平屋根の家 外観パース</h1>
-    <span class="spec">敷地 30.0 × 26.0 m ／ 木造2階建て ／ 外壁 ガルバ横張り＋杉板</span>
+    <span class="spec">改築エリア 18.0 × 27.0 m（南東に縦長）／ 木製フェンス H1.8 m ／ 外壁 ガルバ横張り＋杉板</span>
   </header>
   <div class="group">
     <span class="label">視点</span>
@@ -106,6 +116,7 @@
   </div>
   <button type="button" class="collapse" id="collapse">パネルを畳む</button>
 </aside>
+<div class="compass" aria-label="方位"><svg viewBox="0 0 40 40" width="40" height="40" id="compassRose"><path d="M20 4 L25 20 L20 17 L15 20 Z" fill="var(--accent)"/><path d="M20 36 L25 20 L20 23 L15 20 Z" fill="var(--muted)"/></svg><span>N</span></div>
 <div class="hint">ドラッグで回転 ・ 右ドラッグで移動 ・ ホイールでズーム</div>
 
 <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.min.js"></script>
@@ -173,7 +184,7 @@
   Object.assign(sun.shadow.camera, { left: -48, right: 48, top: 48, bottom: -48, near: 1, far: 260 });
   sun.shadow.bias = -0.0004;
   sun.shadow.normalBias = 0.03;
-  sun.target.position.set(1, 0, 0);
+  sun.target.position.set(0, 0, 0);
   scene.add(sun, sun.target);
 
   // ---------- procedural textures (1 tile = 1 m unless noted) ----------
@@ -325,114 +336,114 @@
   }
 
   // ---------- site ----------
-  // Site axes: +x = east (road side), +z = south (garden / main facade). Units in metres.
-  const LOT = { x0: -14, x1: 16, z0: -12, z1: 14 };
+  // Local axes follow the plot: +z = south-east (garden side, main facade), +x = north-east (road / gate).
+  // True north is therefore (+x, -z) / √2. Units in metres. Plot = 改築エリア, 18 m × 27 m.
+  const LOT = { x0: -9, x1: 9, z0: -13.5, z1: 13.5 };
+  const GATE = { z0: -0.3, z1: 3.3 };                              // 入口 on the north-east fence
+  const PAVE = { x0: 3.0, x1: LOT.x1, z0: LOT.z0, z1: 3.6 };       // 地面コンクリート strip
+  const NORTH = new THREE.Vector3(1, 0, -1).normalize();
+  const EAST = new THREE.Vector3(1, 0, 1).normalize();
+  const SOUTH = new THREE.Vector3(-1, 0, 1).normalize();
 
-  flat(-300, 300, -300, 300, 0, texMat(TX.lawn, 300, 300, { color: 0xb9c4a6 }));
-  flat(LOT.x0, LOT.x1, LOT.z0, LOT.z1, 0.01, texMat(TX.lawn, 15, 13));
+  flat(-300, 300, -300, 300, 0, texMat(TX.gravel, 300, 300, { color: 0xc9c7bf }));
+  // artificial turf over the whole plot; paving and gravel sit on top
+  flat(LOT.x0, LOT.x1, LOT.z0, LOT.z1, 0.01, texMat(TX.lawn, 9, 13.5, { color: 0xd6ecbc, roughness: 0.95 }));
 
-  // road + sidewalk on the east
-  flat(18.3, 30, -300, 300, 0.02, texMat(TX.asphalt, 6, 300));
-  boxX(16.2, 18.3, 0, 0.12, -300, 300, texMat(TX.concrete, 2, 600), scene, false);
-  boxX(18.1, 18.3, 0, 0.16, -300, 300, M.curb, scene, false);
+  // road + sidewalk on the north-east
+  flat(11, 19, -300, 300, 0.02, texMat(TX.asphalt, 4, 300));
+  boxX(9.2, 11, 0, 0.12, -300, 300, texMat(TX.concrete, 2, 600), scene, false);
+  boxX(10.8, 11, 0, 0.16, -300, 300, M.curb, scene, false);
   const lineMat = new THREE.MeshStandardMaterial({ color: 0xeeeeea, roughness: 0.6 });
-  for (let z = -160; z < 160; z += 8) flat(23.95, 24.1, z, z + 4.5, 0.03, lineMat);
-  flat(18.8, 18.92, -300, 300, 0.03, lineMat);
-  flat(29.1, 29.22, -300, 300, 0.03, lineMat);
-  // gravel lanes west & south of the lot (as in the aerial)
-  flat(-24, LOT.x0, -14, 20, 0.015, texMat(TX.gravel, 10, 34));
-  flat(-24, 16.2, 14, 18.5, 0.015, texMat(TX.gravel, 40, 4.5));
+  for (let z = -160; z < 160; z += 8) flat(14.93, 15.07, z, z + 4.5, 0.03, lineMat);
+  flat(11.4, 11.52, -300, 300, 0.03, lineMat);
+  flat(18.48, 18.6, -300, 300, 0.03, lineMat);
+  // apron from the gate across the sidewalk
+  boxX(9.0, 10.8, 0, 0.13, GATE.z0, GATE.z1, texMat(TX.concrete, 2, 3.6), scene, false);
 
-  // driveway (concrete) + carport
-  boxX(8.6, 16.2, 0, 0.06, -11.6, 3.2, texMat(TX.concrete, 7.6, 14.8), scene, false);
-  // gravel strip in front of the house, with river rocks
-  flat(-6.6, 8.6, -2.3, 0.2, 0.025, texMat(TX.gravel, 15, 2.5));
-  flat(-4.5, 2.1, -1.2, -0.1, 0.03, texMat(TX.rocks, 6, 1.1));
-  // entrance porch, steps, stepping stones
-  const conc = texMat(TX.concrete, 2, 1);
-  boxX(2.2, 5.0, 0, 0.32, -2.9, -1.9, conc);
-  boxX(2.4, 4.8, 0, 0.16, -1.9, -1.4, conc);
-  [[5.8, -0.9], [6.9, -0.6], [8.0, -0.3]].forEach(([x, z]) => boxX(x - 0.45, x + 0.45, 0, 0.07, z - 0.3, z + 0.3, conc));
-  [[1.0, 1.0], [1.0, 2.0], [1.0, 3.0]].forEach(([x, z]) => boxX(x - 0.5, x + 0.5, 0, 0.05, z - 0.28, z + 0.28, conc));
+  // ground concrete (parking / approach) and gravel between house and paving
+  boxX(PAVE.x0, PAVE.x1, 0, 0.06, PAVE.z0, PAVE.z1, texMat(TX.concrete, 6, 17), scene, false);
+  flat(1.3, PAVE.x0, LOT.z0, -4.0, 0.025, texMat(TX.gravel, 1.7, 9.5));
 
-  // ---------- house ----------
+  // ---------- house (sits in the 家を建てる場所 zone, west corner) ----------
+  // House-local: x across the facade (+x towards the gate side), front of ground floor at z = 0.
   const house = new THREE.Group(); scene.add(house);
-  const GF = { x0: -6, x1: 6, z0: -10, z1: -2.9, h: 3.0 };      // ground floor
-  const UF = { x0: -6.3, x1: 6.3, z0: -10.2, z1: -2.0, y0: 3.0, y1: 6.6 }; // cantilevered upper volume
+  house.position.set(-3.6, 0, -4.9);
+  const GF = { x0: -4.8, x1: 2.6, z0: -8.0, z1: 0, h: 3.0 };
+  const UF = { x0: -5.0, x1: 2.85, z0: -8.2, z1: 0.8, y0: 3.0, y1: 6.6 };
+  const AX = { x0: 2.85, x1: 4.9, z0: -7.4, z1: -0.6, h: 5.3 };   // lower annex beside the entrance
   const sidingFor = (w, h) => texMat(TX.siding, w, h, { roughness: 0.65, metalness: 0.15 });
+  const cedarFor = (w, h) => texMat(TX.cedar, w, h, { roughness: 0.8 });
 
   // ground floor shell
-  boxX(GF.x0, GF.x1, 0.3, GF.h, GF.z0, GF.z1, sidingFor(12, 2.7), house);
-  boxX(GF.x0 - 0.05, GF.x1 + 0.05, 0, 0.3, GF.z0 - 0.05, GF.z1 + 0.05, texMat(TX.concrete, 12, 0.3), house); // foundation
-  // cedar panel, left of front
-  boxX(-6.04, -1.4, 0.3, 3.0, -2.9, -2.82, texMat(TX.cedar, 4.6, 2.7, { roughness: 0.8 }), house);
-  addWindow(-4.9, 2.55, -2.82, 1.5, 0.32, {}, house);
-  addWindow(-3.1, 2.55, -2.82, 1.5, 0.32, {}, house);
+  boxX(GF.x0, GF.x1, 0.3, GF.h, GF.z0, GF.z1, sidingFor(7.4, 2.7), house);
+  boxX(GF.x0 - 0.05, AX.x1 + 0.05, 0, 0.3, GF.z0 - 0.05, GF.z1 + 0.05, texMat(TX.concrete, 10, 0.3), house); // foundation
+  // cedar panel with two slit windows
+  boxX(GF.x0 - 0.04, -1.1, 0.3, 3.0, -0.08, 0.04, cedarFor(3.7, 2.7), house);
+  addWindow(-3.85, 2.55, 0.04, 1.3, 0.32, {}, house);
+  addWindow(-2.25, 2.55, 0.04, 1.3, 0.32, {}, house);
   // frosted window behind the tall concrete wall
-  addWindow(0.2, 2.35, -2.9, 2.6, 0.95, { panes: 2, frosted: true }, house);
-  // entrance: door + cedar side panel
-  boxX(2.45, 3.45, 0.32, 2.75, -2.92, -2.84, M.door, house);
-  boxX(3.25, 3.3, 1.2, 1.9, -2.84, -2.78, M.white, house, false);   // handle
-  boxX(3.55, 5.0, 0.3, 3.0, -2.9, -2.82, texMat(TX.cedar, 1.5, 2.7, { roughness: 0.8 }), house);
-  addWindow(5.55, 2.2, -2.9, 0.6, 1.3, { frosted: true }, house);
-  // west facade: large garden glazing
-  addWindow(-6.0, 2.6, -5.5, 4.2, 2.2, { ry: -Math.PI / 2, panes: 3 }, house);
-  // rear windows
-  addWindow(-2, 2.3, -10, 1.6, 1.1, { ry: Math.PI, panes: 2 }, house);
-  addWindow(3, 2.0, -10, 0.8, 0.8, { ry: Math.PI }, house);
+  addWindow(-0.15, 2.35, 0, 1.6, 0.95, { panes: 2, frosted: true }, house);
+  // 玄関 (faces south-east): door + cedar side panel
+  boxX(0.85, 1.8, 0.32, 2.75, -0.02, 0.06, M.door, house);
+  boxX(1.62, 1.67, 1.2, 1.9, 0.06, 0.12, M.white, house, false);   // handle
+  boxX(1.9, GF.x1, 0.3, 3.0, -0.08, 0.04, cedarFor(0.7, 2.7), house);
+  // garden-side (south-west) glazing and rear windows
+  addWindow(GF.x0, 2.6, -3.2, 3.6, 2.2, { ry: -Math.PI / 2, panes: 3 }, house);
+  addWindow(-2.2, 2.3, GF.z0, 1.6, 1.1, { ry: Math.PI, panes: 2 }, house);
+  addWindow(1.2, 2.0, GF.z0, 0.8, 0.8, { ry: Math.PI }, house);
 
-  // upper volume
-  boxX(UF.x0, UF.x1, UF.y0, UF.y1, UF.z0, UF.z1, sidingFor(12.6, 3.6), house);
-  // picture-frame trim around the front face (the upper box reads as a tube in the photo)
+  // upper volume, cantilevered towards the garden
+  boxX(UF.x0, UF.x1, UF.y0, UF.y1, UF.z0, UF.z1, sidingFor(7.85, 3.6), house);
   const t = 0.16, zF = UF.z1;
   boxX(UF.x0 - 0.02, UF.x1 + 0.02, UF.y1 - t, UF.y1 + 0.02, zF - 0.4, zF + 0.12, M.darkMetal, house);
   boxX(UF.x0 - 0.02, UF.x1 + 0.02, UF.y0 - 0.02, UF.y0 + t, zF - 0.4, zF + 0.12, M.darkMetal, house);
   boxX(UF.x0 - 0.02, UF.x0 + t, UF.y0, UF.y1, zF - 0.4, zF + 0.12, M.darkMetal, house);
   boxX(UF.x1 - t, UF.x1 + 0.02, UF.y0, UF.y1, zF - 0.4, zF + 0.12, M.darkMetal, house);
-  // soffit under the overhang
-  boxX(UF.x0, UF.x1, UF.y0 - 0.06, UF.y0, GF.z1, UF.z1, M.darkMetal, house, false);
-  // downlights in soffit
-  [-4, 0.5, 3.0].forEach(x => {
+  boxX(UF.x0, UF.x1, UF.y0 - 0.06, UF.y0, GF.z1, UF.z1, M.darkMetal, house, false);   // soffit
+  [-3, -0.2, 1.35].forEach(x => {
     const l = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.02, 12), new THREE.MeshBasicMaterial({ color: 0xfff3d6 }));
-    l.position.set(x, UF.y0 - 0.07, -2.45); house.add(l);
+    l.position.set(x, UF.y0 - 0.07, 0.4); house.add(l);
   });
-  // roof: low-slope behind a parapet
+  // low-slope roof behind a parapet
   boxX(UF.x0 + 0.1, UF.x1 - 0.1, UF.y1, UF.y1 + 0.05, UF.z0 + 0.1, UF.z1 - 0.1, M.roof, house);
   boxX(UF.x0, UF.x1, UF.y1, UF.y1 + 0.18, UF.z0, UF.z0 + 0.12, M.darkMetal, house);
   boxX(UF.x0, UF.x0 + 0.12, UF.y1, UF.y1 + 0.18, UF.z0, UF.z1, M.darkMetal, house);
   boxX(UF.x1 - 0.12, UF.x1, UF.y1, UF.y1 + 0.18, UF.z0, UF.z1, M.darkMetal, house);
-  // upper front windows (two slits, a three-pane window, a wide slit)
+  // upper front windows: two slits, three-pane window, short slit
   const zW = UF.z1 + 0.01;
-  addWindow(-4.25, 5.95, zW, 1.55, 0.36, {}, house);
-  addWindow(-2.45, 5.95, zW, 1.55, 0.36, {}, house);
-  addWindow(0.9, 6.05, zW, 2.1, 1.25, { panes: 3 }, house);
-  addWindow(4.3, 5.9, zW, 1.7, 0.5, {}, house);
-  // upper side / rear windows
-  addWindow(UF.x0, 5.6, -5, 1.8, 1.1, { ry: -Math.PI / 2, panes: 2 }, house);
-  addWindow(UF.x1, 5.6, -7.5, 0.8, 1.1, { ry: Math.PI / 2 }, house);
-  addWindow(-3, 5.6, UF.z0, 2.2, 1.0, { ry: Math.PI, panes: 2 }, house);
-  addWindow(2.5, 5.6, UF.z0, 1.2, 1.0, { ry: Math.PI }, house);
+  addWindow(-3.55, 5.95, zW, 1.35, 0.36, {}, house);
+  addWindow(-2.0, 5.95, zW, 1.35, 0.36, {}, house);
+  addWindow(0.25, 6.05, zW, 1.9, 1.2, { panes: 3 }, house);
+  addWindow(2.0, 5.9, zW, 1.0, 0.5, {}, house);
+  addWindow(UF.x0, 5.6, -3.5, 1.8, 1.1, { ry: -Math.PI / 2, panes: 2 }, house);
+  addWindow(UF.x1, 5.6, -6.0, 0.8, 1.1, { ry: Math.PI / 2 }, house);
+  addWindow(-2.5, 5.6, UF.z0, 2.0, 1.0, { ry: Math.PI, panes: 2 }, house);
+  addWindow(1.3, 5.6, UF.z0, 1.0, 1.0, { ry: Math.PI }, house);
 
-  // east annex (lower dark volume beside the entrance)
-  boxX(6.0, 8.6, 0, 5.4, -10, -3.6, sidingFor(2.6, 5.4), house);
-  boxX(5.95, 8.65, 5.4, 5.58, -10.05, -3.55, M.darkMetal, house);
-  addWindow(7.35, 2.2, -3.6, 0.95, 1.25, { frosted: true }, house);
-  addWindow(8.6, 2.1, -6.5, 1.4, 1.0, { ry: Math.PI / 2 }, house);
-  // rain pipe
-  const pipe = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 6.5, 8), M.darkMetal);
-  pipe.position.set(6.25, 3.25, -1.95); pipe.castShadow = true; house.add(pipe);
+  // annex
+  boxX(AX.x0, AX.x1, 0, AX.h, AX.z0, AX.z1, sidingFor(2.05, AX.h), house);
+  boxX(AX.x0 - 0.05, AX.x1 + 0.05, AX.h, AX.h + 0.18, AX.z0 - 0.05, AX.z1 + 0.05, M.darkMetal, house);
+  addWindow(3.9, 2.2, AX.z1, 0.9, 1.25, { frosted: true }, house);
+  addWindow(AX.x1, 2.1, -4.5, 1.4, 1.0, { ry: Math.PI / 2 }, house);
 
-  // board-formed concrete walls in front (low + tall), as in the street photo
-  boxX(-6.2, -2.6, 0, 1.05, -0.95, -0.75, texMat(TX.rc, 3.6, 1.05, { roughness: 0.92 }), house);
-  boxX(-2.6, 2.0, 0, 2.15, -0.95, -0.75, texMat(TX.rc, 4.6, 2.15, { roughness: 0.92 }), house);
-  // stone gabion by the entrance
-  boxX(5.3, 6.0, 0, 1.4, -1.6, -0.4, texMat(TX.rocks, 0.8, 1.4, { roughness: 1 }), house);
+  // front of house: gravel bed, river rocks, board-formed concrete walls, gabion, porch
+  flat(UF.x0 - 0.3, AX.x1, 0, 3.0, 0.025, texMat(TX.gravel, 10, 3), house);
+  flat(-4.9, 0.7, 2.15, 2.9, 0.03, texMat(TX.rocks, 5.6, 0.75), house);
+  boxX(-5.0, -2.0, 0, 1.05, 1.9, 2.1, texMat(TX.rc, 3.0, 1.05, { roughness: 0.92 }), house);
+  boxX(-2.0, 0.6, 0, 2.15, 1.9, 2.1, texMat(TX.rc, 2.6, 2.15, { roughness: 0.92 }), house);
+  boxX(2.85, 3.5, 0, 1.4, 0.2, 1.4, texMat(TX.rocks, 0.65, 1.4, { roughness: 1 }), house);
+  const conc = texMat(TX.concrete, 2, 1);
+  boxX(0.6, 2.4, 0, 0.32, 0, 0.9, conc, house);
+  boxX(0.75, 2.25, 0, 0.16, 0.9, 1.4, conc, house);
+  // stepping stones: porch → paving (gate) and porch → garden
+  [[3.6, 1.0], [4.8, 1.3], [6.0, 1.6]].forEach(([x, z]) => boxX(x - 0.45, x + 0.45, 0, 0.07, z - 0.3, z + 0.3, conc, house));
+  [[1.5, 2.3], [1.4, 3.3], [1.3, 4.3]].forEach(([x, z]) => boxX(x - 0.5, x + 0.5, 0, 0.05, z - 0.28, z + 0.28, conc, house));
 
-  // carport
-  const carport = new THREE.Group(); house.add(carport);
-  [[9.2, -11.2], [15.6, -11.2], [9.2, -4.8], [15.6, -4.8]].forEach(([x, z]) => boxX(x - 0.06, x + 0.06, 0, 2.55, z - 0.06, z + 0.06, M.frame, carport));
-  boxX(8.9, 15.9, 2.55, 2.75, -11.5, -4.5, M.roof, carport);
-  boxX(8.9, 15.9, 2.55, 2.75, -4.55, -4.45, M.darkMetal, carport);
+  // carport on the paving, north-west end
+  const carport = new THREE.Group(); scene.add(carport);
+  [[3.5, -13.1], [8.6, -13.1], [3.5, -6.6], [8.6, -6.6]].forEach(([x, z]) => boxX(x - 0.06, x + 0.06, 0, 2.55, z - 0.06, z + 0.06, M.frame, carport));
+  boxX(3.2, 8.9, 2.55, 2.75, -13.4, -6.3, M.roof, carport);
+  boxX(3.2, 8.9, 2.55, 2.75, -6.35, -6.25, M.darkMetal, carport);
 
   function car(x, z, color) {
     const g = new THREE.Group();
@@ -448,25 +459,32 @@
     g.position.set(x, 0.06, z); g.rotation.y = 0.02;
     scene.add(g);
   }
-  car(10.9, -7.8, 0x1d2126);
-  car(13.9, -7.6, 0x9fa3a6);
+  car(4.8, -9.6, 0x1d2126);
+  car(7.4, -9.4, 0x9fa3a6);
 
-  // ---------- fence ----------
+  // ---------- fence: wooden, H 1.8 m ----------
+  const FENCE_H = 1.8;
+  const postMat = new THREE.MeshStandardMaterial({ color: 0x3e2c1f, roughness: 0.85 });
+  const slatMat = texMat(TX.cedar, 1, 1, { color: 0xb08a70, roughness: 0.85 });
   function fence(x1, z1, x2, z2) {
     const len = Math.hypot(x2 - x1, z2 - z1);
     const g = new THREE.Group();
     g.position.set(x1, 0, z1);
     g.rotation.y = -Math.atan2(z2 - z1, x2 - x1);
-    const slatH = 0.13, gap = 0.045, rows = 10;
-    for (let i = 0; i < rows; i++) box(len, slatH, 0.025, M.fence, len / 2, 0.12 + i * (slatH + gap), 0, g);
-    const n = Math.max(1, Math.round(len / 2));
-    for (let i = 0; i <= n; i++) box(0.07, 1.95, 0.07, M.frame, (len * i) / n, 0, -0.04, g);
+    const rows = 10, base = 0.08, pitch = (FENCE_H - base) / rows, slatH = pitch - 0.035;
+    const mat = slatMat.clone(); mat.map = rep(TX.cedar, len, 0.12);
+    for (let i = 0; i < rows; i++) box(len, slatH, 0.025, mat, len / 2, base + i * pitch, 0, g);
+    const n = Math.max(1, Math.round(len / 1.8));
+    for (let i = 0; i <= n; i++) box(0.09, FENCE_H, 0.09, postMat, (len * i) / n, 0, -0.06, g);
     scene.add(g);
   }
-  fence(LOT.x0, LOT.z1, 16.1, LOT.z1);        // south
-  fence(LOT.x0, LOT.z0, LOT.x0, LOT.z1);      // west
-  fence(LOT.x0, LOT.z0, 8.6, LOT.z0);         // north
-  fence(16.1, 3.2, 16.1, LOT.z1);             // east (road side, open at the driveway)
+  fence(LOT.x0, LOT.z1, LOT.x1, LOT.z1);        // south-east
+  fence(LOT.x0, LOT.z0, LOT.x0, LOT.z1);        // south-west
+  fence(LOT.x0, LOT.z0, LOT.x1, LOT.z0);        // north-west
+  fence(LOT.x1, LOT.z0, LOT.x1, GATE.z0);       // north-east, up to the gate
+  fence(LOT.x1, GATE.z1, LOT.x1, LOT.z1);       // north-east, after the gate
+  // gate posts
+  [GATE.z0, GATE.z1].forEach(z => box(0.16, 1.9, 0.16, M.frame, LOT.x1, 0, z));
 
   // ---------- planting ----------
   const leafMats = [0x6f9a35, 0x82a83b, 0x5f8d2e, 0x93b445, 0x6c9440].map(c => new THREE.MeshStandardMaterial({ color: c, roughness: 0.85, flatShading: true }));
@@ -506,19 +524,18 @@
     m.scale.set(r, r * 0.9, r); m.position.set(x, r * 0.85, z);
     m.castShadow = m.receiveShadow = true; parent.add(m);
   }
-  // garden trees (positions follow the aerial: scattered multi-stem trees on the lawn)
-  [[-10.8, 1.5, 1.05], [-7.2, -4.8, 1.0], [-4.6, 5.4, 1.1], [-9.5, 9.6, 0.95], [6.6, 9.6, 1.15],
-   [-8.6, -0.6, 0.85], [6.9, -1.6, 0.8], [11.4, 7.4, 0.8], [15.0, 4.5, 0.7]].forEach(([x, z, s]) => tree(x, z, s));
-  // hedge along the road fence + low shrubs around the garden
-  for (let z = 4; z < 13.5; z += 0.95) shrub(15.25, z, rr(0.38, 0.5));
-  for (let x = 12; x < 15; x += 0.95) shrub(x, 13.2, rr(0.38, 0.5));
-  [[-13, -1], [-13.1, 5.5], [-12.9, 12.6], [-6.4, -2.0], [8.4, -2.6], [7.8, 0.8]].forEach(([x, z]) => shrub(x, z, 0.5));
-  // small planting strip along sidewalk
-  for (let z = -10; z < 14; z += 1.1) shrub(16.65, z, 0.3);
+  // garden trees on the artificial turf
+  [[-6.6, 1.6, 1.0], [2.0, 5.2, 1.0], [-7.4, 8.0, 0.95], [5.6, 9.0, 1.1],
+   [7.3, 12.0, 0.8], [6.8, 5.6, 0.85], [-8.0, -2.4, 0.8]].forEach(([x, z, s]) => tree(x, z, s));
+  // low planting along the fences
+  for (let x = -8.3; x < 8.6; x += 1.0) shrub(x, 12.85, rr(0.36, 0.48));
+  for (let z = 4.6; z < 12.5; z += 1.0) shrub(8.4, z, rr(0.36, 0.48));
+  for (let z = 4; z < 12.5; z += 1.6) shrub(-8.4, z, rr(0.36, 0.46));
+  [[-8.4, -12.9], [2.2, -12.9], [2.3, -4.6]].forEach(([x, z]) => shrub(x, z, 0.45));
 
   // ---------- neighbourhood ----------
   const hood = new THREE.Group(); scene.add(hood);
-  function gableHouse(x, z, w, d, h, rot = 0, wall = TX.plaster, roofColor = 0x4a4f55) {
+  function gableHouse(x, z, w, d, h, rot = 0, wall = TX.plaster, roofColor = 0x6d7279) {
     const g = new THREE.Group();
     boxX(-w / 2, w / 2, 0, h, -d / 2, d / 2, texMat(wall, w, h), g);
     const rise = Math.min(w, d) * 0.22;
@@ -527,7 +544,6 @@
     const geo = new THREE.ExtrudeGeometry(shape, { depth: d + 1, bevelEnabled: false });
     const roof = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color: roofColor, roughness: 0.75, metalness: 0.15 }));
     roof.position.set(0, h, -d / 2 - 0.5); roof.castShadow = roof.receiveShadow = true; g.add(roof);
-    // a few windows on the long sides
     for (let i = -1; i <= 1; i++) {
       addWindow(i * w / 3.2, h - 1.0, d / 2 + 0.01, 0.9, 1.1, {}, g);
       addWindow(i * w / 3.2, h - 4.0, d / 2 + 0.01, 0.9, 1.1, {}, g);
@@ -542,32 +558,31 @@
     boxX(-w / 2 + 0.2, w / 2 - 0.2, h, h + 0.12, -d / 2 + 0.2, d / 2 - 0.2, new THREE.MeshStandardMaterial({ color: 0xd8d6d0, roughness: 0.9 }), g);
     g.position.set(x, 0, z); hood.add(g);
   }
-  flatHouse(-19.5, -4.5, 7, 9, 6.2);                          // white cube to the west
-  gableHouse(-17.5, -18, 9, 8, 6.4, 0);
-  gableHouse(6, -21, 15, 9, 6.8, 0);
-  gableHouse(-30, -6, 8, 10, 6.2, Math.PI / 2);
-  gableHouse(-4, 31, 11, 8, 6.4, 0);
-  gableHouse(10, 31, 8, 8, 6.2, 0);
-  gableHouse(-26, 30, 8, 8, 6.0, 0);
-  gableHouse(38, -8, 9, 9, 6.4, Math.PI / 2);
-  gableHouse(38, 10, 9, 9, 6.2, Math.PI / 2);
-  gableHouse(23, -26, 9, 8, 6.0, 0);
-  // neighbour walls + street trees
+  flatHouse(-15, -7, 8, 9, 6.2);                              // south-west neighbours
+  gableHouse(-15.5, 5, 9, 8, 6.4, Math.PI / 2);
+  gableHouse(-15, 23, 10, 9, 6.6, 0);                         // house "24" side
+  gableHouse(-3, -20, 10, 8, 6.4, 0);                         // north-west
+  gableHouse(7, -20.5, 7, 8, 6.0, 0);
+  gableHouse(3, 25, 9, 8, 6.2, 0);                            // south-east
+  gableHouse(27, -10, 9, 9, 6.4, Math.PI / 2);                // across the road
+  gableHouse(27, 6, 9, 9, 6.2, Math.PI / 2);
+  gableHouse(27, 22, 9, 9, 6.0, Math.PI / 2);
   for (let i = 0; i < 26; i++) {
-    const a = rnd() * Math.PI * 2, d = rr(30, 60);
+    const a = rnd() * Math.PI * 2, d = rr(28, 60);
     const x = Math.cos(a) * d, z = Math.sin(a) * d;
-    if (x > 15 && x < 32) continue;                           // keep the road clear
+    if (x > 8 && x < 22) continue;                            // keep the road clear
     tree(x, z, rr(0.9, 1.4), hood, false);
   }
-  [[-15.5, -12.5], [-15.6, 13], [-20, 12]].forEach(([x, z]) => tree(x, z, 1.1, hood, false));
 
   // ---------- sun / time of day ----------
   const sunDir = new THREE.Vector3();
   const cWarm = new THREE.Color(0xffb873), cNoon = new THREE.Color(0xfff4e2);
   function setHour(h) {
-    const t = (h - 6) / 12 * Math.PI;                       // 0 = east, π = west
+    const t = (h - 6) / 12 * Math.PI;                       // 0 = true east, π/2 = south, π = west
     const elev = Math.sin(t);
-    sunDir.set(Math.cos(t) * 0.85, 0.12 + elev * 0.95, 0.55 + elev * 0.25).normalize();
+    sunDir.copy(EAST).multiplyScalar(Math.cos(t)).addScaledVector(SOUTH, Math.sin(t)).multiplyScalar(0.9);
+    sunDir.y = 0.1 + elev * 1.0;
+    sunDir.normalize();
     sun.position.copy(sun.target.position).addScaledVector(sunDir, 110);
     const low = 1 - Math.min(1, elev / 0.55);
     sun.color.copy(cNoon).lerp(cWarm, low * 0.85);
@@ -582,11 +597,11 @@
 
   // ---------- cameras ----------
   const VIEWS = {
-    aerial: { p: [-26, 30, 36], t: [2, 0, 0] },
-    front:  { p: [1.2, 1.6, 15.5], t: [1.2, 3.2, -4] },
-    garden: { p: [-12.5, 1.7, 12], t: [1, 3, -4] },
-    road:   { p: [26.5, 1.6, 14], t: [6, 2.6, -4] },
-    top:    { p: [1, 85, 0.5], t: [1, 0, 0] }
+    aerial: { p: [-15, 36, 29], t: [0, 0, -1] },
+    front:  { p: [-3.8, 1.6, 11], t: [-3.8, 3.2, -9] },
+    garden: { p: [1, 1.7, 12.6], t: [-3, 3, -7] },
+    road:   { p: [16.5, 1.6, 9], t: [0, 2.4, -4] },
+    top:    { p: [-0.35, 80, 0.35], t: [0, 0, 0] }           // offset to the south so north is up
   };
   let tween = null;
   function goTo(name, instant) {
@@ -620,6 +635,7 @@
   }
   window.addEventListener('resize', resize);
 
+  const fwd = new THREE.Vector3(), rose = document.getElementById('compassRose');
   const ease = x => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
   function frame(now) {
     if (tween) {
@@ -629,6 +645,10 @@
       if (k === 1) tween = null;
     }
     controls.update();
+    // compass: angle of true north, clockwise from screen-up
+    fwd.subVectors(controls.target, camera.position).setY(0).normalize();
+    const ang = Math.atan2(NORTH.x * -fwd.z + NORTH.z * fwd.x, NORTH.dot(fwd));
+    rose.style.transform = `rotate(${ang}rad)`;
     renderer.render(scene, camera);
     requestAnimationFrame(frame);
   }
