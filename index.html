@@ -28,6 +28,7 @@
     --line: rgba(236, 234, 230, 0.14); --accent: #d08850; --accent-fg: #1a1208; --chip: rgba(236, 234, 230, 0.07);
     color-scheme: dark;
   }
+  [hidden] { display: none !important; }
   html, body { height: 100%; }
   body { background: var(--bg); color: var(--fg); font-family: var(--f-body); overflow: hidden; }
   #stage { position: fixed; inset: 0; }
@@ -94,6 +95,33 @@
   }
   .compass svg { grid-area: 1 / 1; transition: none; }
   .compass span { grid-area: 1 / 1; font-size: 10px; font-weight: 700; color: var(--fg); transform: translateY(-1px); pointer-events: none; }
+  .actions { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .btn, select {
+    font: inherit; font-size: 13px; color: var(--fg);
+    background: var(--chip); border: 1px solid var(--line); border-radius: 6px;
+    padding: 6px 11px; cursor: pointer;
+  }
+  .btn:hover { border-color: var(--accent); }
+  .btn.primary, .btn[aria-pressed="true"] { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); }
+  .btn.danger { color: #b3261e; }
+  select:focus-visible, textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .note { margin: 0; font-size: 12px; color: var(--muted); line-height: 1.6; }
+  .sheet.edit { left: auto; bottom: auto; right: max(16px, env(safe-area-inset-right, 0px)); top: calc(56px + env(safe-area-inset-top, 0px)); width: min(320px, calc(100vw - 32px)); max-height: calc(100% - 72px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)); }
+  .edit-head { display: flex; justify-content: space-between; align-items: center; }
+  #partSel { width: 100%; }
+  .field { display: grid; gap: 2px; }
+  .field-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 12.5px; }
+  .field .num { display: inline-flex; align-items: center; gap: 4px; }
+  .field input[type="number"] { width: 5.2em; font: inherit; font-size: 13px; color: var(--fg); background: var(--chip); border: 1px solid var(--line); border-radius: 5px; padding: 3px 6px; font-variant-numeric: tabular-nums; text-align: right; }
+  .field .unit { font-size: 11px; color: var(--muted); }
+  .toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(20px + env(safe-area-inset-bottom, 0px)); background: var(--fg); color: var(--bg); padding: 8px 14px; border-radius: 999px; font-size: 13px; z-index: 40; }
+  .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); display: grid; place-items: center; z-index: 50; padding-inline: max(16px, env(safe-area-inset-left, 0px)) max(16px, env(safe-area-inset-right, 0px)); }
+  .dialog { background: var(--bg); color: var(--fg); border-radius: 10px; padding: 16px; display: grid; gap: 12px; width: min(760px, 100%); max-height: 90%; overflow: auto; }
+  .dialog img { width: 100%; height: auto; border-radius: 6px; }
+  .dialog textarea { width: 100%; box-sizing: border-box; font: 12px/1.5 ui-monospace, Menlo, monospace; color: var(--fg); background: var(--chip); border: 1px solid var(--line); border-radius: 6px; padding: 8px; }
+  @media (max-width: 700px) {
+    .sheet.edit { top: calc(80px + env(safe-area-inset-top, 0px)); max-height: 55%; }
+  }
   @media (max-width: 520px) { .hint { display: none; } }
 </style>
 
@@ -103,7 +131,7 @@
   <header>
     <span class="eyebrow">EXTERIOR PERSPECTIVE</span>
     <h1>平屋根の家 外観パース</h1>
-    <span class="spec">敷地 600㎡ ／ 2階建て 延床 131.9㎡（約40坪）／ LDK吹き抜け ／ 駐車2台＋α（カーポート・ひさし接続）</span>
+    <span class="spec" id="spec"></span>
   </header>
   <div class="group">
     <span class="label">視点</span>
@@ -125,28 +153,67 @@
   </div>
   <details class="group sizes" id="sizes">
     <summary class="label">サイズ情報（計画値）</summary>
-    <dl>
-      <dt>敷地</dt><dd>25.0 × 24.0 m ＝ 600.0㎡</dd>
-      <dt>　計画エリア</dt><dd>15.5 × 24.0 m ＝ 372.0㎡</dd>
-      <dt>　既存建物エリア</dt><dd>9.5 × 24.0 m ＝ 228.0㎡</dd>
-      <dt>建物外形</dt><dd>10.0 × 8.2 m ／ 高さ 6.6 m</dd>
-      <dt>建築面積</dt><dd>82.0㎡</dd>
-      <dt>延床面積</dt><dd>131.9㎡（39.9坪）</dd>
-      <dt>　1階</dt><dd>76.8㎡</dd>
-      <dt>　2階</dt><dd>55.1㎡（吹き抜け 15.4㎡ を除く）</dd>
-      <dt>駐車場</dt><dd>5.5 × 11.0 m ＝ 60.5㎡（2台＋α）</dd>
-      <dt>カーポート</dt><dd>5.4 × 10.9 m（建物に接続）</dd>
-      <dt>玄関ひさし</dt><dd>3.3 × 2.7 m（カーポートと一体）</dd>
-      <dt>入口</dt><dd>幅 4.0 m（北東・車と歩行者共用）</dd>
-      <dt>庭（人工芝）</dt><dd>約 150㎡</dd>
-      <dt>フェンス</dt><dd>木製 H1.8 m（北西・北東・南東）</dd>
-      <dt>道路</dt><dd>北東 幅員 8.0 m ／ 南東 幅員 6.0 m</dd>
-    </dl>
+    <dl id="sizesList"></dl>
   </details>
+  <div class="group">
+    <span class="label">出力</span>
+    <div class="actions">
+      <button type="button" class="btn primary" id="saveImage">画像を保存（PNG）</button>
+      <select id="imgScale" aria-label="画像の解像度">
+        <option value="1">画面サイズ</option>
+        <option value="2" selected>2倍</option>
+        <option value="3">3倍</option>
+      </select>
+    </div>
+    <div class="actions">
+      <button type="button" class="btn" id="copyPrompt">AI用プロンプトをコピー</button>
+      <button type="button" class="btn" id="editToggle" aria-pressed="false">パーツを編集</button>
+    </div>
+  </div>
   <button type="button" class="collapse" id="collapse">パネルを畳む</button>
 </aside>
 <div class="compass" aria-label="方位"><svg viewBox="0 0 40 40" width="40" height="40" id="compassRose"><path d="M20 4 L25 20 L20 17 L15 20 Z" fill="var(--accent)"/><path d="M20 36 L25 20 L20 23 L15 20 Z" fill="var(--muted)"/></svg><span>N</span></div>
 <div class="hint">ドラッグで回転 ・ 右ドラッグで移動 ・ ホイールでズーム</div>
+<aside class="sheet edit" id="editSheet" hidden aria-label="パーツの編集">
+  <header class="edit-head">
+    <span class="eyebrow">EDIT</span>
+    <button type="button" class="collapse" id="editClose">閉じる</button>
+  </header>
+  <div class="group">
+    <label class="label" for="partSel">パーツ</label>
+    <select id="partSel"></select>
+    <p class="note" id="dragHint">3D上でパーツをクリックすると選択、選択中のパーツはドラッグで移動できます。</p>
+  </div>
+  <div class="group" id="fields"></div>
+  <div class="actions">
+    <button type="button" class="btn" id="resetPart">このパーツを初期値に</button>
+    <button type="button" class="btn" id="removeTree" hidden>この木を削除</button>
+    <button type="button" class="btn" id="addTree">木を追加</button>
+  </div>
+  <div class="actions">
+    <button type="button" class="btn" id="exportJson">配置データを書き出す</button>
+    <button type="button" class="btn" id="importJson">読み込む</button>
+    <button type="button" class="btn danger" id="resetAll">すべて初期値に</button>
+  </div>
+</aside>
+<div class="toast" id="toast" role="status" hidden></div>
+<div class="overlay" id="shotOverlay" hidden>
+  <div class="dialog">
+    <p class="note">保存の画面を開けなかったため、画像をここに表示しています。右クリック（スマホは長押し）で保存してください。</p>
+    <img id="shotImg" alt="書き出した外観パース">
+    <button type="button" class="btn" id="shotClose">閉じる</button>
+  </div>
+</div>
+<div class="overlay" id="textDlg" hidden>
+  <div class="dialog">
+    <p class="label" id="textTitle"></p>
+    <textarea id="textArea" rows="12" spellcheck="false"></textarea>
+    <div class="actions">
+      <button type="button" class="btn primary" id="textApply" hidden>読み込む</button>
+      <button type="button" class="btn" id="textClose">閉じる</button>
+    </div>
+  </div>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/controls/OrbitControls.js"></script>
@@ -336,8 +403,9 @@
   };
 
   // ---------- helpers ----------
+  let ROOT = scene;                       // default parent; build() points it at the rebuilt world group
   // box with its bottom at y, centred on x/z
-  function box(w, h, d, mat, x, y, z, parent = scene, shadow = true) {
+  function box(w, h, d, mat, x, y, z, parent = ROOT, shadow = true) {
     const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
     m.position.set(x, y + h / 2, z);
     m.castShadow = shadow; m.receiveShadow = true;
@@ -345,16 +413,16 @@
     return m;
   }
   // box from extents
-  function boxX(x0, x1, y0, y1, z0, z1, mat, parent = scene, shadow = true) {
+  function boxX(x0, x1, y0, y1, z0, z1, mat, parent = ROOT, shadow = true) {
     return box(x1 - x0, y1 - y0, z1 - z0, mat, (x0 + x1) / 2, y0, (z0 + z1) / 2, parent, shadow);
   }
-  function flat(x0, x1, z0, z1, y, mat, parent = scene) {
+  function flat(x0, x1, z0, z1, y, mat, parent = ROOT) {
     const m = new THREE.Mesh(new THREE.PlaneGeometry(x1 - x0, z1 - z0), mat);
     m.rotation.x = -Math.PI / 2; m.position.set((x0 + x1) / 2, y, (z0 + z1) / 2);
     m.receiveShadow = true; parent.add(m); return m;
   }
   // window in local space facing +z; ry rotates it onto a facade
-  function addWindow(x, y, z, w, h, { ry = 0, panes = 1, frosted = false, depth = 0.08 } = {}, parent = scene) {
+  function addWindow(x, y, z, w, h, { ry = 0, panes = 1, frosted = false, depth = 0.08 } = {}, parent = ROOT) {
     const g = new THREE.Group();
     g.position.set(x, y, z); g.rotation.y = ry;
     box(w + 0.1, h + 0.1, depth, M.frame, 0, -h / 2 - 0.05, 0, g, false);
@@ -364,180 +432,118 @@
     return g;
   }
 
-  // ---------- site ----------
+  // ---------- layout parameters (everything the editor can change) ----------
   // Local axes follow the plot: +z = south-east (garden side, main facade), +x = north-east (road / gate).
-  // True north is therefore (+x, -z) / √2. Units in metres.
-  // Whole site: one rectangle 25.0 × 24.0 m = 600 m². The south-west 9.5 m holds the existing same-site
-  // buildings; the remaining 15.5 × 24.0 m is the 計画エリア (house + parking + garden).
-  const LOT = { x0: -12.5, x1: 12.5, z0: -12, z1: 12 };
-  const PLAN_X0 = -3.0;                                             // boundary between existing buildings and the plan area
-  const GATE = { z0: 0, z1: 4.0 };                                  // 入口 on the north-east fence (cars and people)
-  const PARK = { x0: 7.0, x1: LOT.x1, z0: LOT.z0, z1: -1.0 };      // parking for 2 cars + spare, beside the house
+  // True north is (+x, -z) / √2. Units in metres. Positions are part centres in site coordinates.
   const NORTH = new THREE.Vector3(1, 0, -1).normalize();
   const EAST = new THREE.Vector3(1, 0, 1).normalize();
   const SOUTH = new THREE.Vector3(-1, 0, 1).normalize();
+  const DEFAULTS = {
+    site: { w: 25, d: 24 },                         // 600 m², one rectangle
+    existing: { w: 9.5 },                           // south-west strip with the same-site buildings
+    house: { x: 2.0, z: -7.3, w: 10, d: 8.2, h: 6.4 },
+    parking: { x: 9.75, z: -6.5, w: 5.5, d: 11 },
+    carport: { on: true, h: 2.6, canopy: true, cd: 2.2 },
+    gate: { z: 2.0, w: 4.0 },
+    fence: { h: 1.8 },
+    roads: { ne: 8, se: 6 },
+    ex1: { x: -8.4, z: -7.4, w: 7, d: 7.5, h: 6.0 },
+    ex2: { x: -8.6, z: 3.4, w: 6.5, d: 8, h: 6.4 },
+    trees: [
+      { x: -1.6, z: 4.0, s: 0.95 }, { x: 6.6, z: 8.6, s: 1.05 }, { x: 10.6, z: 10.6, s: 0.85 },
+      { x: 11.0, z: 6.4, s: 0.8 }, { x: 8.6, z: 7.8, s: 0.85 }, { x: -10.6, z: 10.0, s: 0.9 }, { x: -6.4, z: 10.6, s: 0.8 }
+    ]
+  };
+  const clone = o => JSON.parse(JSON.stringify(o));
+  const STORE_KEY = 'house-perspective-layout-v1';
+  function merge(base, src) {
+    const out = clone(base);
+    if (!src || typeof src !== 'object') return out;
+    for (const k of Object.keys(out)) {
+      if (k === 'trees') {
+        if (Array.isArray(src.trees)) out.trees = src.trees.filter(t => t && isFinite(t.x) && isFinite(t.z)).map(t => ({ x: +t.x, z: +t.z, s: isFinite(t.s) ? +t.s : 1 }));
+      } else if (src[k] && typeof src[k] === 'object') {
+        for (const f of Object.keys(out[k])) {
+          const v = src[k][f];
+          if (typeof out[k][f] === 'boolean') { if (typeof v === 'boolean') out[k][f] = v; }
+          else if (isFinite(v)) out[k][f] = +v;
+        }
+      }
+    }
+    return out;
+  }
+  let P = clone(DEFAULTS);
+  try { P = merge(DEFAULTS, JSON.parse(localStorage.getItem(STORE_KEY))); } catch (e) { /* storage unavailable */ }
+  function persist() { try { localStorage.setItem(STORE_KEY, JSON.stringify(P)); } catch (e) { /* storage unavailable */ } }
 
-  flat(-300, 300, -300, 300, 0, texMat(TX.gravel, 300, 300, { color: 0xc9c7bf }));
-  // artificial turf over the plan area; existing-building strip is gravel; paving sits on top
-  flat(PLAN_X0, LOT.x1, LOT.z0, LOT.z1, 0.01, texMat(TX.lawn, 8, 12, { color: 0xd6ecbc, roughness: 0.95 }));
-  flat(LOT.x0, PLAN_X0, LOT.z0, LOT.z1, 0.012, texMat(TX.gravel, 9.5, 24));
+  // derived geometry shared by build(), the size table, dimension lines and cameras
+  function derive() {
+    const L = { x0: -P.site.w / 2, x1: P.site.w / 2, z0: -P.site.d / 2, z1: P.site.d / 2 };
+    const planX0 = L.x0 + Math.min(P.existing.w, P.site.w - 2);
+    const H = P.house, K = P.parking;
+    const hb = { x0: H.x - H.w / 2, x1: H.x + H.w / 2, z0: H.z - H.d / 2, z1: H.z + H.d / 2 };
+    const pk = { x0: K.x - K.w / 2, x1: K.x + K.w / 2, z0: K.z - K.d / 2, z1: K.z + K.d / 2 };
+    const gate = { z0: Math.max(L.z0, P.gate.z - P.gate.w / 2), z1: Math.min(L.z1, P.gate.z + P.gate.w / 2) };
+    const sx = H.w / 10, sz = H.d / 8.2;
+    const canopy = { x0: H.x + 1.7 * sx, x1: pk.x0, z0: hb.z1 - 0.5 * sz, z1: hb.z1 + P.carport.cd };
+    canopy.ok = P.carport.canopy && canopy.x1 - canopy.x0 > 0.5;
+    return { L, planX0, hb, pk, gate, sx, sz, canopy };
+  }
 
-  // roads: north-east (with the gate) and south-east
-  const lineMat = new THREE.MeshStandardMaterial({ color: 0xeeeeea, roughness: 0.6 });
-  const asphalt = texMat(TX.asphalt, 4, 300), walk = texMat(TX.concrete, 2, 600);
-  const NE_ROAD = { x0: 14.5, x1: 22.5 }, SE_ROAD = { z0: 14.0, z1: 20.0 };
-  flat(NE_ROAD.x0, NE_ROAD.x1, -300, 300, 0.02, asphalt);
-  flat(-300, 300, SE_ROAD.z0, SE_ROAD.z1, 0.021, texMat(TX.asphalt, 300, 3));
-  boxX(12.7, NE_ROAD.x0, 0, 0.12, -300, SE_ROAD.z0, walk, scene, false);
-  boxX(-300, NE_ROAD.x0, 0, 0.12, 12.2, SE_ROAD.z0, texMat(TX.concrete, 600, 2), scene, false);
-  boxX(12.7, NE_ROAD.x0, 0, 0.12, SE_ROAD.z1, 300, walk, scene, false);
-  boxX(NE_ROAD.x1, NE_ROAD.x1 + 1.8, 0, 0.12, -300, 300, walk, scene, false);
-  const notCrossing = (a0, a1, c0, c1) => a1 < c0 || a0 > c1;
-  for (let z = -160; z < 160; z += 8) if (notCrossing(z, z + 4.5, SE_ROAD.z0, SE_ROAD.z1)) flat(18.43, 18.57, z, z + 4.5, 0.03, lineMat);
-  for (let x = -160; x < 160; x += 8) if (notCrossing(x, x + 4.5, NE_ROAD.x0, NE_ROAD.x1)) flat(x, x + 4.5, 16.93, 17.07, 0.031, lineMat);
-  // aprons across the sidewalk at the gate
-  boxX(12.5, NE_ROAD.x0, 0, 0.13, GATE.z0, GATE.z1, texMat(TX.concrete, 2, 4), scene, false);
+  function areas() {
+    const { L, planX0, hb, pk, gate, sx, sz, canopy } = derive();
+    const H = P.house, K = P.parking;
+    const site = P.site.w * P.site.d, plan = (L.x1 - planX0) * P.site.d, exist = site - plan;
+    const foot = H.w * H.d;
+    const ufw = 8.6 * sx;                                  // upper volume width (annex excluded)
+    const gf = foot - ufw * 0.6 * sz;                      // ground floor minus the recess under the overhang
+    const voidA = 15.4 * foot / 82;
+    const uf = ufw * H.d - voidA;
+    const total = gf + uf;
+    const parking = K.w * K.d;
+    const drive = gate.z1 > pk.z1 ? (L.x1 - pk.x0) * (gate.z1 - pk.z1) : 0;
+    const front = (H.w + 0.6) * 4.1 * sz;
+    const behind = Math.max(0, hb.z0 - L.z0) * H.w;
+    const garden = Math.max(0, plan - foot - parking - drive - front - behind);
+    const fenceLen = P.site.w * 2 + P.site.d - (gate.z1 - gate.z0);
+    return { site, plan, exist, foot, gf, uf, voidA, total, parking, garden, fenceLen, canopy, gate, planW: L.x1 - planX0 };
+  }
 
-  // parking concrete, running on to the gate, plus bay lines (2 bays; the spare bay is the open area towards the gate)
-  boxX(PARK.x0, PARK.x1, 0, 0.06, PARK.z0, GATE.z1, texMat(TX.concrete, 5.5, 16), scene, false);
-  flat(9.70, 9.80, -12, -6.6, 0.065, lineMat);
-  flat(PARK.x0 + 0.1, PARK.x1 - 0.1, -6.65, -6.55, 0.065, lineMat);
-  // gravel behind the house
-  flat(PLAN_X0, PARK.x0, LOT.z0, -11.4, 0.025, texMat(TX.gravel, 10, 0.6));
+  // ---------- scene graph that is rebuilt from P ----------
+  let world = null;
+  const parts = {};                       // part key -> group (for picking, dragging, highlighting)
+  let hood, dims;
 
-  // ---------- house: facade after the street photo, inside a 10.0 × 8.2 m rectangle ----------
-  // Framed upper volume over a slightly recessed ground floor, lower annex on the parking side.
-  // 1F 76.8 m² + 2F 55.1 m² (70.5 m² − 15.4 m² void over the LDK) = 131.9 m² ≈ 39.9 坪.
-  // House-local: x across the garden facade (+x towards the parking), upper-floor face at z = 0.
-  const house = new THREE.Group(); scene.add(house);
-  house.position.set(2.0, 0, -3.2);
-  const GF = { x0: -5, x1: 3.6, z0: -8.2, z1: -0.6, h: 3.0 };
-  const UF = { x0: -5, x1: 3.6, z0: -8.2, z1: 0, y0: 3.0, y1: 6.4 };
-  const AX = { x0: 3.6, x1: 5, z0: -8.2, z1: -0.4, h: 5.1 };
-  const sidingFor = (w, h) => texMat(TX.siding, w, h, { roughness: 0.65, metalness: 0.15 });
-  const cedarFor = (w, h) => texMat(TX.cedar, w, h, { roughness: 0.8 });
-  const fz = GF.z1;                                                  // ground-floor wall face
+  // memoised textured materials so rebuilding does not re-upload textures
+  const matCache = new Map();
+  const texMatRaw = texMat;
+  const texMatC = (tex, x, y, o = {}) => {
+    const key = tex.uuid + '|' + x.toFixed(2) + '|' + y.toFixed(2) + '|' + JSON.stringify(o);
+    let m = matCache.get(key);
+    if (!m) { m = texMatRaw(tex, x, y, o); m.userData.keep = true; matCache.set(key, m); }
+    return m;
+  };
+  Object.values(M).forEach(m => { m.userData.keep = true; });
 
-  boxX(GF.x0, GF.x1, 0.3, GF.h, GF.z0, GF.z1, sidingFor(8.6, 2.7), house);
-  boxX(GF.x0 - 0.05, AX.x1 + 0.05, 0, 0.3, GF.z0 - 0.05, GF.z1 + 0.05, texMat(TX.concrete, 10, 0.3), house); // foundation
-  // ground floor, left to right as in the photo
-  boxX(-4.85, -1.45, 0.3, 3.0, fz - 0.02, fz + 0.04, cedarFor(3.4, 2.7), house);
-  addWindow(-3.15, 2.55, fz + 0.04, 0.95, 0.3, {}, house);
-  addWindow(-2.0, 2.55, fz + 0.04, 0.95, 0.3, {}, house);
-  addWindow(0.2, 2.45, fz, 1.6, 0.6, { panes: 2, frosted: true }, house);
-  boxX(2.05, 2.5, 0.32, 2.75, fz - 0.02, fz + 0.06, M.door, house);
-  boxX(2.4, 2.44, 1.2, 1.9, fz + 0.06, fz + 0.1, M.white, house, false);   // handle
-  addWindow(2.75, 1.55, fz, 0.45, 2.4, { frosted: true }, house);          // sidelight
-  boxX(3.0, GF.x1, 0.3, 3.0, fz - 0.02, fz + 0.04, cedarFor(0.6, 2.7), house);
-  [-3.4, 0.2, 2.3].forEach(x => {                                         // wall lights
-    const l = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.12, 0.08), new THREE.MeshBasicMaterial({ color: 0xfff1d0 }));
-    l.position.set(x, 2.85, fz + 0.06); house.add(l);
+  function partGroup(key, x = 0, z = 0) {
+    const g = new THREE.Group();
+    g.position.set(x, 0, z);
+    g.userData.part = key;
+    parts[key] = g;
+    world.add(g);
+    return g;
+  }
+
+  const leafMats = [0x6f9a35, 0x82a83b, 0x5f8d2e, 0x93b445, 0x6c9440].map(c => {
+    const m = new THREE.MeshStandardMaterial({ color: c, roughness: 0.85, flatShading: true }); m.userData.keep = true; return m;
   });
-  // LDK side (south-west): large glazing for the double-height living
-  addWindow(GF.x0, 1.55, -3.0, 3.6, 2.3, { ry: -Math.PI / 2, panes: 3 }, house);
-  addWindow(GF.x0, 4.9, -3.0, 3.6, 1.5, { ry: -Math.PI / 2, panes: 3 }, house);
-  addWindow(GF.x0, 2.2, -6.8, 1.2, 0.9, { ry: -Math.PI / 2 }, house);
-  // rear (浴室, 洗面, 勝手口)
-  addWindow(-4.0, 2.3, GF.z0, 0.9, 0.6, { ry: Math.PI, frosted: true }, house);
-  addWindow(-1.4, 2.3, GF.z0, 0.9, 0.6, { ry: Math.PI, frosted: true }, house);
-  boxX(-0.2, 0.7, 0.32, 2.3, GF.z0 - 0.06, GF.z0 + 0.02, M.door, house);
-  addWindow(2.2, 2.4, GF.z0, 1.4, 0.6, { ry: Math.PI }, house);
-
-  // upper volume with its picture-frame trim
-  boxX(UF.x0, UF.x1, UF.y0, UF.y1, UF.z0, UF.z1, sidingFor(8.6, 3.4), house);
-  const t = 0.16;
-  boxX(UF.x0 - 0.02, UF.x1 + 0.02, UF.y1 - t, UF.y1 + 0.02, -0.4, 0.12, M.darkMetal, house);
-  boxX(UF.x0 - 0.02, UF.x1 + 0.02, UF.y0 - 0.02, UF.y0 + t, -0.4, 0.12, M.darkMetal, house);
-  boxX(UF.x0 - 0.02, UF.x0 + t, UF.y0, UF.y1, -0.4, 0.12, M.darkMetal, house);
-  boxX(UF.x1 - t, UF.x1 + 0.02, UF.y0, UF.y1, -0.4, 0.12, M.darkMetal, house);
-  boxX(UF.x0, UF.x1, UF.y0 - 0.06, UF.y0, GF.z1, UF.z1, M.darkMetal, house, false);   // soffit
-  // roof behind a parapet
-  boxX(UF.x0 + 0.1, UF.x1 - 0.1, UF.y1, UF.y1 + 0.05, UF.z0 + 0.1, UF.z1 - 0.1, M.roof, house);
-  boxX(UF.x0, UF.x1, UF.y1, UF.y1 + 0.16, UF.z0, UF.z0 + 0.12, M.darkMetal, house);
-  boxX(UF.x0, UF.x0 + 0.12, UF.y1, UF.y1 + 0.16, UF.z0, UF.z1, M.darkMetal, house);
-  boxX(UF.x1 - 0.12, UF.x1, UF.y1, UF.y1 + 0.16, UF.z0, UF.z1, M.darkMetal, house);
-  // upper front windows: two slits, three-pane window, wide slit
-  addWindow(-3.15, 5.35, 0.01, 1.1, 0.26, {}, house);
-  addWindow(-2.0, 5.35, 0.01, 1.0, 0.26, {}, house);
-  addWindow(0.15, 5.3, 0.01, 1.6, 0.85, { panes: 3 }, house);
-  addWindow(2.3, 5.3, 0.01, 1.1, 0.36, {}, house);
-  // upper rear / north-east
-  addWindow(-3.0, 5.0, UF.z0, 2.0, 1.0, { ry: Math.PI, panes: 2 }, house);
-  addWindow(1.5, 5.0, UF.z0, 1.6, 1.0, { ry: Math.PI, panes: 2 }, house);
-  addWindow(UF.x1, 5.4, -5.5, 1.8, 0.4, { ry: Math.PI / 2 }, house);
-
-  // annex (faces the parking)
-  boxX(AX.x0, AX.x1, 0, AX.h, AX.z0, AX.z1, sidingFor(1.4, AX.h), house);
-  boxX(AX.x0, AX.x1 + 0.05, AX.h, AX.h + 0.12, AX.z0 - 0.05, AX.z1 + 0.05, M.darkMetal, house);
-  addWindow(4.1, 2.25, AX.z1, 0.55, 0.75, { frosted: true }, house);
-  addWindow(AX.x1, 1.9, -6.4, 0.9, 0.5, { ry: Math.PI / 2, frosted: true }, house);
-  boxX(AX.x1 - 0.02, AX.x1 + 0.06, 0.32, 2.3, -3.2, -2.3, M.door, house);   // side door straight into the carport
-  const pipe = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 5.0, 8), M.darkMetal);
-  pipe.position.set(4.85, 2.5, AX.z1 + 0.05); house.add(pipe);
-
-  // exterior: rocks, board-formed concrete walls (low + tall), porch, concrete path to the parking
-  flat(UF.x0 - 0.3, GF.x1, fz, 1.9, 0.025, texMat(TX.gravel, 9, 2.5), house);
-  flat(-4.6, 1.9, 1.3, 1.9, 0.03, texMat(TX.rocks, 6.5, 0.6), house);
-  boxX(-4.05, -1.67, 0, 1.0, 1.05, 1.25, texMat(TX.rc, 2.4, 1.0, { roughness: 0.92 }), house);
-  boxX(-1.67, 1.9, 0, 2.1, 1.05, 1.25, texMat(TX.rc, 3.6, 2.1, { roughness: 0.92 }), house);
-  const conc = texMat(TX.concrete, 2, 1);
-  boxX(1.95, 3.6, 0, 0.3, fz, 0.6, conc, house);
-  boxX(1.95, 3.6, 0, 0.15, 0.6, 1.05, conc, house);
-  boxX(GF.x1, 5.0, 0, 0.05, AX.z1, 1.9, conc, house);
-  boxX(-4.6, 5.0, 0, 0.05, 1.9, 3.5, texMat(TX.concrete, 9.6, 1.6), house);
-
-  // carport attached to the house + entrance canopy (ひさし), one continuous roof so the walk stays dry
-  const carport = new THREE.Group(); scene.add(carport);
-  const ROOF_Y = 2.6;
-  boxX(PARK.x0, PARK.x1 - 0.1, ROOF_Y, ROOF_Y + 0.15, PARK.z0 + 0.1, PARK.z1, M.roof, carport);   // carport 5.4 × 10.9
-  boxX(3.7, PARK.x0, ROOF_Y, ROOF_Y + 0.15, -3.7, PARK.z1, M.roof, carport);                       // canopy 3.3 × 2.7
-  boxX(3.7, PARK.x1 - 0.1, ROOF_Y - 0.12, ROOF_Y, PARK.z1 - 0.1, PARK.z1, M.darkMetal, carport);  // fascia
-  [[12.25, -11.75], [12.25, -6.4], [12.25, -1.15], [3.85, -1.15]].forEach(([x, z]) =>
-    boxX(x - 0.06, x + 0.06, 0, ROOF_Y, z - 0.06, z + 0.06, M.frame, carport));
-
-  function car(x, z, color, ry = 0) {
-    const g = new THREE.Group();
-    const paint = new THREE.MeshStandardMaterial({ color, roughness: 0.3, metalness: 0.4 });
-    boxX(-0.92, 0.92, 0.35, 1.0, -2.25, 2.25, paint, g);
-    boxX(-0.82, 0.82, 1.0, 1.58, -1.25, 1.0, M.glass, g);
-    boxX(-0.8, 0.8, 1.56, 1.66, -1.2, 0.95, paint, g);
-    const tire = new THREE.MeshStandardMaterial({ color: 0x151515, roughness: 0.9 });
-    [[-0.85, -1.45], [0.85, -1.45], [-0.85, 1.45], [0.85, 1.45]].forEach(([tx, tz]) => {
-      const w = new THREE.Mesh(new THREE.CylinderGeometry(0.36, 0.36, 0.26, 16), tire);
-      w.rotation.z = Math.PI / 2; w.position.set(tx, 0.36, tz); w.castShadow = true; g.add(w);
-    });
-    g.position.set(x, 0.06, z); g.rotation.y = ry;
-    scene.add(g);
-  }
-  car(8.4, -9.2, 0x1d2126, 0.02);
-  car(11.1, -9.3, 0x9fa3a6, -0.02);
-
-  // ---------- fence: wooden, H 1.8 m, on the north-west, north-east and south-east sides ----------
-  const FENCE_H = 1.8;
-  const postMat = new THREE.MeshStandardMaterial({ color: 0x3e2c1f, roughness: 0.85 });
-  const slatMat = texMat(TX.cedar, 1, 1, { color: 0xb08a70, roughness: 0.85 });
-  function fence(x1, z1, x2, z2) {
-    const len = Math.hypot(x2 - x1, z2 - z1);
-    const g = new THREE.Group();
-    g.position.set(x1, 0, z1);
-    g.rotation.y = -Math.atan2(z2 - z1, x2 - x1);
-    const rows = 10, base = 0.08, pitch = (FENCE_H - base) / rows, slatH = pitch - 0.035;
-    const mat = slatMat.clone(); mat.map = rep(TX.cedar, len, 0.12);
-    for (let i = 0; i < rows; i++) box(len, slatH, 0.025, mat, len / 2, base + i * pitch, 0, g);
-    const n = Math.max(1, Math.round(len / 1.8));
-    for (let i = 0; i <= n; i++) box(0.09, FENCE_H, 0.09, postMat, (len * i) / n, 0, -0.06, g);
-    scene.add(g);
-  }
-  fence(LOT.x0, LOT.z0, LOT.x1, LOT.z0);        // north-west
-  fence(LOT.x1, LOT.z0, LOT.x1, GATE.z0);       // north-east, beside the parking
-  fence(LOT.x1, GATE.z1, LOT.x1, LOT.z1);       // north-east, after the gate
-  fence(LOT.x0, LOT.z1, LOT.x1, LOT.z1);        // south-east (road side)
-  [GATE.z0, GATE.z1].forEach(z => box(0.16, 1.9, 0.16, M.frame, LOT.x1, 0, z));
-
-  // ---------- planting ----------
-  const leafMats = [0x6f9a35, 0x82a83b, 0x5f8d2e, 0x93b445, 0x6c9440].map(c => new THREE.MeshStandardMaterial({ color: c, roughness: 0.85, flatShading: true }));
   const leafGeo = new THREE.IcosahedronGeometry(1, 1);
-  function tree(x, z, s = 1, parent = scene, ring = true) {
+  leafGeo.userData.keep = true;
+  const postMat = new THREE.MeshStandardMaterial({ color: 0x3e2c1f, roughness: 0.85 }); postMat.userData.keep = true;
+  const lineMat = new THREE.MeshStandardMaterial({ color: 0xeeeeea, roughness: 0.6 }); lineMat.userData.keep = true;
+  const dimLineMat = new THREE.LineBasicMaterial({ color: 0xc0561d, depthTest: false }); dimLineMat.userData.keep = true;
+
+  function tree(s, parent, ring = true) {
     const g = new THREE.Group();
     const trunkH = 2.4 * s;
     const tr = new THREE.Mesh(new THREE.CylinderGeometry(0.06 * s, 0.13 * s, trunkH, 7), M.trunk);
@@ -563,73 +569,149 @@
       const c = new THREE.Mesh(new THREE.CircleGeometry(0.65 * s, 20), M.mulch);
       c.rotation.x = -Math.PI / 2; c.position.y = 0.035; c.receiveShadow = true; g.add(c);
     }
-    g.position.set(x, 0, z); g.rotation.y = rnd() * 6;
+    g.rotation.y = rnd() * 6;
     parent.add(g);
     return g;
   }
-  function shrub(x, z, r = 0.45, parent = scene) {
+  function shrub(x, z, r, parent) {
     const m = new THREE.Mesh(leafGeo, leafMats[(rnd() * 3) | 0]);
     m.scale.set(r, r * 0.9, r); m.position.set(x, r * 0.85, z);
     m.castShadow = m.receiveShadow = true; parent.add(m);
   }
-  // garden trees on the artificial turf
-  [[-1.6, 4.0, 0.95], [6.6, 8.6, 1.05], [10.6, 10.6, 0.85], [11.0, 6.4, 0.8], [8.6, 7.8, 0.85]]
-    .forEach(([x, z, s]) => tree(x, z, s));
-  // low planting along the fences
-  for (let x = PLAN_X0 + 0.6; x < 12; x += 1.0) shrub(x, 11.35, rr(0.36, 0.48));
-  for (let z = 5.0; z < 11; z += 1.0) shrub(11.9, z, rr(0.36, 0.48));
-
-  // ---------- existing same-site buildings (south-west part of the site) ----------
-  const hood = new THREE.Group(); scene.add(hood);
-  const sameSite = new THREE.Group(); scene.add(sameSite);
-  function gableHouse(x, z, w, d, h, rot = 0, parent = hood, wall = TX.plaster, roofColor = 0x6d7279) {
+  function gableHouse(x, z, w, d, h, rot, parent) {
     const g = new THREE.Group();
-    boxX(-w / 2, w / 2, 0, h, -d / 2, d / 2, texMat(wall, w, h), g);
+    boxX(-w / 2, w / 2, 0, h, -d / 2, d / 2, texMatC(TX.plaster, w, h), g);
     const rise = Math.min(w, d) * 0.22;
     const shape = new THREE.Shape();
     shape.moveTo(-w / 2 - 0.5, 0); shape.lineTo(0, rise); shape.lineTo(w / 2 + 0.5, 0); shape.lineTo(-w / 2 - 0.5, 0);
     const geo = new THREE.ExtrudeGeometry(shape, { depth: d + 1, bevelEnabled: false });
-    const roof = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color: roofColor, roughness: 0.75, metalness: 0.15 }));
+    const roof = new THREE.Mesh(geo, M.gable);
     roof.position.set(0, h, -d / 2 - 0.5); roof.castShadow = roof.receiveShadow = true; g.add(roof);
     for (let i = -1; i <= 1; i++) {
       addWindow(i * w / 3.2, h - 1.0, d / 2 + 0.01, 0.9, 1.1, {}, g);
-      addWindow(i * w / 3.2, h - 4.0, d / 2 + 0.01, 0.9, 1.1, {}, g);
+      if (h > 4.5) addWindow(i * w / 3.2, h - 4.0, d / 2 + 0.01, 0.9, 1.1, {}, g);
     }
     g.position.set(x, 0, z); g.rotation.y = rot;
     parent.add(g);
   }
-  function flatHouse(x, z, w, d, h, parent = hood) {
+  function flatHouse(x, z, w, d, h, parent) {
     const g = new THREE.Group();
-    boxX(-w / 2, w / 2, 0, h, -d / 2, d / 2, texMat(TX.plaster, w, h), g);
+    boxX(-w / 2, w / 2, 0, h, -d / 2, d / 2, texMatC(TX.plaster, w, h), g);
     boxX(-w / 2 - 0.05, w / 2 + 0.05, h, h + 0.25, -d / 2 - 0.05, d / 2 + 0.05, M.darkMetal, g);
-    boxX(-w / 2 + 0.2, w / 2 - 0.2, h, h + 0.12, -d / 2 + 0.2, d / 2 - 0.2, new THREE.MeshStandardMaterial({ color: 0xd8d6d0, roughness: 0.9 }), g);
+    boxX(-w / 2 + 0.2, w / 2 - 0.2, h, h + 0.12, -d / 2 + 0.2, d / 2 - 0.2, M.roofLight, g);
     g.position.set(x, 0, z); parent.add(g);
   }
-  flatHouse(-8.4, -7.4, 7, 7.5, 6.0, sameSite);
-  gableHouse(-8.6, 3.4, 8, 6.5, 6.4, Math.PI / 2, sameSite);
-  [[-10.6, 10.0, 0.9], [-6.4, 10.6, 0.8]].forEach(([x, z, s]) => tree(x, z, s, sameSite));
+  M.gable = new THREE.MeshStandardMaterial({ color: 0x6d7279, roughness: 0.75, metalness: 0.15 }); M.gable.userData.keep = true;
+  M.roofLight = new THREE.MeshStandardMaterial({ color: 0xd8d6d0, roughness: 0.9 }); M.roofLight.userData.keep = true;
+  M.lamp = new THREE.MeshBasicMaterial({ color: 0xfff1d0 }); M.lamp.userData.keep = true;
+  function car(x, z, paint, ry, parent) {
+    const g = new THREE.Group();
+    boxX(-0.92, 0.92, 0.35, 1.0, -2.25, 2.25, paint, g);
+    boxX(-0.82, 0.82, 1.0, 1.58, -1.25, 1.0, M.glass, g);
+    boxX(-0.8, 0.8, 1.56, 1.66, -1.2, 0.95, paint, g);
+    [[-0.85, -1.45], [0.85, -1.45], [-0.85, 1.45], [0.85, 1.45]].forEach(([tx, tz]) => {
+      const w = new THREE.Mesh(new THREE.CylinderGeometry(0.36, 0.36, 0.26, 16), M.tire);
+      w.rotation.z = Math.PI / 2; w.position.set(tx, 0.36, tz); w.castShadow = true; g.add(w);
+    });
+    g.position.set(x, 0.06, z); g.rotation.y = ry;
+    parent.add(g);
+  }
+  M.tire = new THREE.MeshStandardMaterial({ color: 0x151515, roughness: 0.9 });
+  M.paintBlack = new THREE.MeshStandardMaterial({ color: 0x1d2126, roughness: 0.3, metalness: 0.4 });
+  M.paintSilver = new THREE.MeshStandardMaterial({ color: 0x9fa3a6, roughness: 0.3, metalness: 0.4 });
+  [M.tire, M.paintBlack, M.paintSilver].forEach(m => { m.userData.keep = true; });
 
-  // ---------- neighbourhood (outside the site) ----------
-  flatHouse(-19, -6, 8, 9, 6.2);
-  gableHouse(-19.5, 6, 9, 8, 6.4, Math.PI / 2);
-  gableHouse(-4, -18.5, 10, 8, 6.4, 0);
-  gableHouse(7.5, -19, 8, 8, 6.0, 0);
-  gableHouse(-12, 26, 10, 9, 6.6, 0);
-  gableHouse(2, 26, 9, 8, 6.2, 0);
-  gableHouse(29, -10, 9, 9, 6.4, Math.PI / 2);
-  gableHouse(29, 5, 9, 9, 6.2, Math.PI / 2);
-  gableHouse(30, 27, 9, 9, 6.0, Math.PI / 2);
-  for (let i = 0; i < 26; i++) {
-    const a = rnd() * Math.PI * 2, d = rr(28, 60);
-    const x = Math.cos(a) * d, z = Math.sin(a) * d;
-    if ((x > 11 && x < 26) || (z > 11 && z < 22)) continue;  // keep the roads clear
-    tree(x, z, rr(0.9, 1.4), hood, false);
+  // ---------- house: facade after the street photo ----------
+  // Modelled at 10.0 × 8.2 m, height 6.4 m, then scaled to the edited size. Upper-floor face at local z = 0.
+  function buildHouse(root) {
+    const inner = new THREE.Group();
+    inner.scale.set(P.house.w / 10, P.house.h / 6.4, P.house.d / 8.2);
+    root.add(inner);
+    const house = new THREE.Group(); house.position.z = 4.1; inner.add(house);
+    const GF = { x0: -5, x1: 3.6, z0: -8.2, z1: -0.6, h: 3.0 };
+    const UF = { x0: -5, x1: 3.6, z0: -8.2, z1: 0, y0: 3.0, y1: 6.4 };
+    const AX = { x0: 3.6, x1: 5, z0: -8.2, z1: -0.4, h: 5.1 };
+    const sidingFor = (w, h) => texMatC(TX.siding, w, h, { roughness: 0.65, metalness: 0.15 });
+    const cedarFor = (w, h) => texMatC(TX.cedar, w, h, { roughness: 0.8 });
+    const fz = GF.z1;
+
+    boxX(GF.x0, GF.x1, 0.3, GF.h, GF.z0, GF.z1, sidingFor(8.6, 2.7), house);
+    boxX(GF.x0 - 0.05, AX.x1 + 0.05, 0, 0.3, GF.z0 - 0.05, GF.z1 + 0.05, texMatC(TX.concrete, 10, 0.3), house);
+    boxX(-4.85, -1.45, 0.3, 3.0, fz - 0.02, fz + 0.04, cedarFor(3.4, 2.7), house);
+    addWindow(-3.15, 2.55, fz + 0.04, 0.95, 0.3, {}, house);
+    addWindow(-2.0, 2.55, fz + 0.04, 0.95, 0.3, {}, house);
+    addWindow(0.2, 2.45, fz, 1.6, 0.6, { panes: 2, frosted: true }, house);
+    boxX(2.05, 2.5, 0.32, 2.75, fz - 0.02, fz + 0.06, M.door, house);
+    boxX(2.4, 2.44, 1.2, 1.9, fz + 0.06, fz + 0.1, M.white, house, false);
+    addWindow(2.75, 1.55, fz, 0.45, 2.4, { frosted: true }, house);
+    boxX(3.0, GF.x1, 0.3, 3.0, fz - 0.02, fz + 0.04, cedarFor(0.6, 2.7), house);
+    [-3.4, 0.2, 2.3].forEach(x => {
+      const l = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.12, 0.08), M.lamp);
+      l.position.set(x, 2.85, fz + 0.06); house.add(l);
+    });
+    // LDK side (south-west): glazing for the double-height living
+    addWindow(GF.x0, 1.55, -3.0, 3.6, 2.3, { ry: -Math.PI / 2, panes: 3 }, house);
+    addWindow(GF.x0, 4.9, -3.0, 3.6, 1.5, { ry: -Math.PI / 2, panes: 3 }, house);
+    addWindow(GF.x0, 2.2, -6.8, 1.2, 0.9, { ry: -Math.PI / 2 }, house);
+    // rear (浴室, 洗面, 勝手口)
+    addWindow(-4.0, 2.3, GF.z0, 0.9, 0.6, { ry: Math.PI, frosted: true }, house);
+    addWindow(-1.4, 2.3, GF.z0, 0.9, 0.6, { ry: Math.PI, frosted: true }, house);
+    boxX(-0.2, 0.7, 0.32, 2.3, GF.z0 - 0.06, GF.z0 + 0.02, M.door, house);
+    addWindow(2.2, 2.4, GF.z0, 1.4, 0.6, { ry: Math.PI }, house);
+    // upper volume + picture-frame trim
+    boxX(UF.x0, UF.x1, UF.y0, UF.y1, UF.z0, UF.z1, sidingFor(8.6, 3.4), house);
+    const t = 0.16;
+    boxX(UF.x0 - 0.02, UF.x1 + 0.02, UF.y1 - t, UF.y1 + 0.02, -0.4, 0.12, M.darkMetal, house);
+    boxX(UF.x0 - 0.02, UF.x1 + 0.02, UF.y0 - 0.02, UF.y0 + t, -0.4, 0.12, M.darkMetal, house);
+    boxX(UF.x0 - 0.02, UF.x0 + t, UF.y0, UF.y1, -0.4, 0.12, M.darkMetal, house);
+    boxX(UF.x1 - t, UF.x1 + 0.02, UF.y0, UF.y1, -0.4, 0.12, M.darkMetal, house);
+    boxX(UF.x0, UF.x1, UF.y0 - 0.06, UF.y0, GF.z1, UF.z1, M.darkMetal, house, false);
+    boxX(UF.x0 + 0.1, UF.x1 - 0.1, UF.y1, UF.y1 + 0.05, UF.z0 + 0.1, UF.z1 - 0.1, M.roof, house);
+    boxX(UF.x0, UF.x1, UF.y1, UF.y1 + 0.16, UF.z0, UF.z0 + 0.12, M.darkMetal, house);
+    boxX(UF.x0, UF.x0 + 0.12, UF.y1, UF.y1 + 0.16, UF.z0, UF.z1, M.darkMetal, house);
+    boxX(UF.x1 - 0.12, UF.x1, UF.y1, UF.y1 + 0.16, UF.z0, UF.z1, M.darkMetal, house);
+    addWindow(-3.15, 5.35, 0.01, 1.1, 0.26, {}, house);
+    addWindow(-2.0, 5.35, 0.01, 1.0, 0.26, {}, house);
+    addWindow(0.15, 5.3, 0.01, 1.6, 0.85, { panes: 3 }, house);
+    addWindow(2.3, 5.3, 0.01, 1.1, 0.36, {}, house);
+    addWindow(-3.0, 5.0, UF.z0, 2.0, 1.0, { ry: Math.PI, panes: 2 }, house);
+    addWindow(1.5, 5.0, UF.z0, 1.6, 1.0, { ry: Math.PI, panes: 2 }, house);
+    addWindow(UF.x1, 5.4, -5.5, 1.8, 0.4, { ry: Math.PI / 2 }, house);
+    // annex on the parking side
+    boxX(AX.x0, AX.x1, 0, AX.h, AX.z0, AX.z1, sidingFor(1.4, AX.h), house);
+    boxX(AX.x0, AX.x1 + 0.05, AX.h, AX.h + 0.12, AX.z0 - 0.05, AX.z1 + 0.05, M.darkMetal, house);
+    addWindow(4.1, 2.25, AX.z1, 0.55, 0.75, { frosted: true }, house);
+    addWindow(AX.x1, 1.9, -6.4, 0.9, 0.5, { ry: Math.PI / 2, frosted: true }, house);
+    boxX(AX.x1 - 0.02, AX.x1 + 0.06, 0.32, 2.3, -3.2, -2.3, M.door, house);
+    const pipe = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 5.0, 8), M.darkMetal);
+    pipe.position.set(4.85, 2.5, AX.z1 + 0.05); house.add(pipe);
+    // front: rocks, board-formed concrete walls, porch, path
+    flat(UF.x0 - 0.3, GF.x1, fz, 1.9, 0.025, texMatC(TX.gravel, 9, 2.5), house);
+    flat(-4.6, 1.9, 1.3, 1.9, 0.03, texMatC(TX.rocks, 6.5, 0.6), house);
+    boxX(-4.05, -1.67, 0, 1.0, 1.05, 1.25, texMatC(TX.rc, 2.4, 1.0, { roughness: 0.92 }), house);
+    boxX(-1.67, 1.9, 0, 2.1, 1.05, 1.25, texMatC(TX.rc, 3.6, 2.1, { roughness: 0.92 }), house);
+    const conc = texMatC(TX.concrete, 2, 1);
+    boxX(1.95, 3.6, 0, 0.3, fz, 0.6, conc, house);
+    boxX(1.95, 3.6, 0, 0.15, 0.6, 1.05, conc, house);
+    boxX(GF.x1, 5.0, 0, 0.05, AX.z1, 1.9, conc, house);
+    boxX(-4.6, 5.0, 0, 0.05, 1.9, 3.5, texMatC(TX.concrete, 9.6, 1.6), house);
   }
 
-  // ---------- dimension lines ----------
-  const dims = new THREE.Group(); dims.visible = false; scene.add(dims);
-  const dimLineMat = new THREE.LineBasicMaterial({ color: 0xc0561d, depthTest: false });
-  function label(text, pos) {
+  function fence(x1, z1, x2, z2, h, parent) {
+    const len = Math.hypot(x2 - x1, z2 - z1);
+    if (len < 0.1) return;
+    const g = new THREE.Group();
+    g.position.set(x1, 0, z1);
+    g.rotation.y = -Math.atan2(z2 - z1, x2 - x1);
+    const rows = Math.max(4, Math.round(h / 0.18)), base = 0.08, pitch = (h - base) / rows, slatH = pitch - 0.035;
+    const mat = texMatC(TX.cedar, Math.round(len * 2) / 2, 0.12, { color: 0xb08a70, roughness: 0.85 });
+    for (let i = 0; i < rows; i++) box(len, slatH, 0.025, mat, len / 2, base + i * pitch, 0, g);
+    const n = Math.max(1, Math.round(len / 1.8));
+    for (let i = 0; i <= n; i++) box(0.09, h, 0.09, postMat, (len * i) / n, 0, -0.06, g);
+    parent.add(g);
+  }
+
+  function label(text, pos, parent) {
     const c = document.createElement('canvas'); c.width = 512; c.height = 128;
     const g = c.getContext('2d');
     g.font = '600 52px "Zen Kaku Gothic New", "Hiragino Sans", sans-serif';
@@ -641,26 +723,442 @@
     const tex = new THREE.CanvasTexture(c); tex.encoding = THREE.sRGBEncoding;
     const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, depthTest: false }));
     s.scale.set(5.2, 1.3, 1); s.position.copy(pos); s.renderOrder = 20;
-    dims.add(s);
+    parent.add(s);
   }
   function dim(x1, z1, x2, z2, ox, oz, text) {
     const y = 0.25, a = new THREE.Vector3(x1 + ox, y, z1 + oz), b = new THREE.Vector3(x2 + ox, y, z2 + oz);
-    const pts = [a, b,
-      new THREE.Vector3(x1, y, z1), a.clone().add(new THREE.Vector3(Math.sign(ox) * 0.4, 0, Math.sign(oz) * 0.4)),
-      new THREE.Vector3(x2, y, z2), b.clone().add(new THREE.Vector3(Math.sign(ox) * 0.4, 0, Math.sign(oz) * 0.4))];
+    const tick = new THREE.Vector3(Math.sign(ox) * 0.4, 0, Math.sign(oz) * 0.4);
+    const pts = [a, b, new THREE.Vector3(x1, y, z1), a.clone().add(tick), new THREE.Vector3(x2, y, z2), b.clone().add(tick)];
     const l = new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(pts), dimLineMat);
     l.renderOrder = 19; dims.add(l);
-    label(text, a.clone().lerp(b, 0.5).setY(0.6));
+    label(text, a.clone().lerp(b, 0.5).setY(0.6), dims);
   }
-  dim(LOT.x0, LOT.z1, LOT.x1, LOT.z1, 0, 3.5, '敷地 25.0 m');
-  dim(LOT.x1, LOT.z0, LOT.x1, LOT.z1, 4.0, 0, '敷地 24.0 m');
-  dim(LOT.x0, LOT.z0, PLAN_X0, LOT.z0, 0, -2.5, '既存建物 9.5 m');
-  dim(PLAN_X0, LOT.z0, LOT.x1, LOT.z0, 0, -2.5, '計画エリア 15.5 m');
-  dim(-3.0, -3.2, 7.0, -3.2, 0, 3.0, '建物 10.0 m');
-  dim(-3.0, -11.4, -3.0, -3.2, -1.2, 0, '建物 8.2 m');
-  dim(PARK.x0, PARK.z0, PARK.x1, PARK.z0, 0, 1.6, '駐車場 5.5 m');
-  dim(PARK.x1, PARK.z0, PARK.x1, PARK.z1, -1.2, 0, '駐車場 11.0 m');
-  dim(LOT.x1, GATE.z0, LOT.x1, GATE.z1, 1.2, 0, '入口 4.0 m');
+  const m1 = v => v.toFixed(1);
+
+  function disposeTree(obj) {
+    obj.traverse(o => {
+      if (o.geometry && !o.geometry.userData.keep) o.geometry.dispose();
+      const mats = o.material ? (Array.isArray(o.material) ? o.material : [o.material]) : [];
+      mats.forEach(m => { if (!m.userData.keep) { if (m.map) m.map.dispose(); m.dispose(); } });
+    });
+  }
+
+  function build() {
+    if (world) { scene.remove(world); disposeTree(world); }
+    Object.keys(parts).forEach(k => delete parts[k]);
+    world = new THREE.Group(); scene.add(world);
+    ROOT = world;
+    const { L, planX0, hb, pk, gate, canopy } = derive();
+    const R = P.roads;
+    const ne = { x0: L.x1 + 2.0, x1: L.x1 + 2.0 + R.ne }, se = { z0: L.z1 + 2.0, z1: L.z1 + 2.0 + R.se };
+
+    // ground, turf, gravel strip with the existing buildings
+    flat(-300, 300, -300, 300, 0, texMatC(TX.gravel, 300, 300, { color: 0xc9c7bf }));
+    flat(planX0, L.x1, L.z0, L.z1, 0.01, texMatC(TX.lawn, (L.x1 - planX0) / 2, P.site.d / 2, { color: 0xd6ecbc, roughness: 0.95 }));
+    if (planX0 > L.x0) flat(L.x0, planX0, L.z0, L.z1, 0.012, texMatC(TX.gravel, planX0 - L.x0, P.site.d));
+
+    // roads (north-east with the gate, south-east) and sidewalks
+    const walkZ = texMatC(TX.concrete, 2, 600), walkX = texMatC(TX.concrete, 600, 2);
+    flat(ne.x0, ne.x1, -300, 300, 0.02, texMatC(TX.asphalt, R.ne / 2, 300));
+    flat(-300, 300, se.z0, se.z1, 0.021, texMatC(TX.asphalt, 300, R.se / 2));
+    boxX(L.x1 + 0.2, ne.x0, 0, 0.12, -300, se.z0, walkZ, world, false);
+    boxX(-300, ne.x0, 0, 0.12, L.z1 + 0.2, se.z0, walkX, world, false);
+    boxX(L.x1 + 0.2, ne.x0, 0, 0.12, se.z1, 300, walkZ, world, false);
+    boxX(ne.x1, ne.x1 + 1.8, 0, 0.12, -300, 300, walkZ, world, false);
+    boxX(-300, ne.x0, 0, 0.12, se.z1, se.z1 + 1.8, walkX, world, false);
+    const clear = (a0, a1, c0, c1) => a1 < c0 || a0 > c1;
+    const neC = (ne.x0 + ne.x1) / 2, seC = (se.z0 + se.z1) / 2;
+    for (let z = -160; z < 160; z += 8) if (clear(z, z + 4.5, se.z0, se.z1)) flat(neC - 0.07, neC + 0.07, z, z + 4.5, 0.03, lineMat);
+    for (let x = -160; x < 160; x += 8) if (clear(x, x + 4.5, ne.x0, ne.x1)) flat(x, x + 4.5, seC - 0.07, seC + 0.07, 0.031, lineMat);
+    boxX(L.x1, ne.x0, 0, 0.13, gate.z0, gate.z1, texMatC(TX.concrete, 2, 4), world, false);
+
+    // parking concrete (+ drive to the gate), bay lines, cars
+    const pg = partGroup('parking');
+    boxX(pk.x0, pk.x1, 0, 0.06, pk.z0, pk.z1, texMatC(TX.concrete, P.parking.w, P.parking.d), pg, false);
+    if (gate.z1 > pk.z1) boxX(pk.x0, L.x1, 0, 0.06, pk.z1, gate.z1, texMatC(TX.concrete, L.x1 - pk.x0, gate.z1 - pk.z1), world, false);
+    if (gate.z0 < pk.z0) boxX(pk.x0, L.x1, 0, 0.06, gate.z0, pk.z0, texMatC(TX.concrete, L.x1 - pk.x0, pk.z0 - gate.z0), world, false);
+    const bays = Math.max(1, Math.min(3, Math.floor(P.parking.w / 2.6)));
+    const bayW = P.parking.w / bays, carDepth = Math.min(5.4, P.parking.d);
+    for (let i = 1; i < bays; i++) flat(pk.x0 + i * bayW - 0.05, pk.x0 + i * bayW + 0.05, pk.z0, pk.z0 + carDepth, 0.065, lineMat, pg);
+    if (P.parking.d > carDepth + 0.5) flat(pk.x0 + 0.1, pk.x1 - 0.1, pk.z0 + carDepth - 0.05, pk.z0 + carDepth + 0.05, 0.065, lineMat, pg);
+    [M.paintBlack, M.paintSilver].slice(0, Math.min(2, bays)).forEach((paint, i) =>
+      car(pk.x0 + bayW * (i + 0.5), pk.z0 + carDepth / 2 + 0.1, paint, i ? -0.02 : 0.02, pg));
+    // gravel behind the house
+    if (hb.z0 - L.z0 > 0.1) flat(hb.x0, hb.x1, L.z0, hb.z0, 0.025, texMatC(TX.gravel, P.house.w, hb.z0 - L.z0));
+
+    // house
+    buildHouse(partGroup('house', P.house.x, P.house.z));
+
+    // carport + entrance canopy as one roof
+    const cp = partGroup('carport');
+    const RY = P.carport.h;
+    if (P.carport.on) {
+      boxX(pk.x0, pk.x1 - 0.1, RY, RY + 0.15, pk.z0 + 0.1, pk.z1, M.roof, cp);
+      boxX(pk.x0, pk.x1 - 0.1, RY - 0.12, RY, pk.z1 - 0.1, pk.z1, M.darkMetal, cp);
+      const posts = [[pk.x1 - 0.25, pk.z0 + 0.25], [pk.x1 - 0.25, (pk.z0 + pk.z1) / 2], [pk.x1 - 0.25, pk.z1 - 0.15]];
+      if (pk.x0 - hb.x1 > 0.3 || pk.z1 < hb.z0 || pk.z0 > hb.z1) posts.push([pk.x0 + 0.15, pk.z0 + 0.25], [pk.x0 + 0.15, pk.z1 - 0.15]);
+      posts.forEach(([x, z]) => boxX(x - 0.06, x + 0.06, 0, RY, z - 0.06, z + 0.06, M.frame, cp));
+    }
+    if (canopy.ok) {
+      boxX(canopy.x0, canopy.x1, RY, RY + 0.15, canopy.z0, canopy.z1, M.roof, cp);
+      boxX(canopy.x0, canopy.x1, RY - 0.12, RY, canopy.z1 - 0.1, canopy.z1, M.darkMetal, cp);
+      boxX(canopy.x0 + 0.09, canopy.x0 + 0.21, 0, RY, canopy.z1 - 0.21, canopy.z1 - 0.09, M.frame, cp);
+    }
+
+    // gate posts + fence on the north-west, north-east and south-east sides
+    const gp = partGroup('gate', 0, 0);
+    [gate.z0, gate.z1].forEach(z => box(0.16, P.fence.h + 0.1, 0.16, M.frame, L.x1, 0, z, gp));
+    const fg = partGroup('fence');
+    fence(L.x0, L.z0, L.x1, L.z0, P.fence.h, fg);
+    fence(L.x1, L.z0, L.x1, gate.z0, P.fence.h, fg);
+    fence(L.x1, gate.z1, L.x1, L.z1, P.fence.h, fg);
+    fence(L.x0, L.z1, L.x1, L.z1, P.fence.h, fg);
+
+    // trees (each its own part) and low planting along the fences
+    P.trees.forEach((t, i) => {
+      seed = 101 + i * 7;
+      tree(t.s, partGroup('tree' + i, t.x, t.z), t.x > planX0);
+    });
+    seed = 977;
+    const shrubs = new THREE.Group(); world.add(shrubs);
+    for (let x = planX0 + 0.6; x < L.x1 - 0.5; x += 1.0) shrub(x, L.z1 - 0.65, rr(0.36, 0.48), shrubs);
+    for (let z = Math.max(gate.z1, pk.z1) + 1.0; z < L.z1 - 1; z += 1.0) shrub(L.x1 - 0.6, z, rr(0.36, 0.48), shrubs);
+
+    // existing same-site buildings
+    flatHouse(0, 0, P.ex1.w, P.ex1.d, P.ex1.h, partGroup('ex1', P.ex1.x, P.ex1.z));
+    gableHouse(0, 0, P.ex2.d, P.ex2.w, P.ex2.h, Math.PI / 2, partGroup('ex2', P.ex2.x, P.ex2.z));
+
+    // neighbourhood outside the site
+    hood = new THREE.Group(); world.add(hood);
+    const W = L.x0 - 6.5, N = L.z0 - 6.5, S = se.z1 + 7, E = ne.x1 + 6.5;
+    flatHouse(W, -6, 8, 9, 6.2, hood);
+    gableHouse(W - 0.5, 6, 9, 8, 6.4, Math.PI / 2, hood);
+    gableHouse(-4, N, 10, 8, 6.4, 0, hood);
+    gableHouse(7.5, N - 0.5, 8, 8, 6.0, 0, hood);
+    gableHouse(-12, S, 10, 9, 6.6, 0, hood);
+    gableHouse(2, S, 9, 8, 6.2, 0, hood);
+    gableHouse(E, -10, 9, 9, 6.4, Math.PI / 2, hood);
+    gableHouse(E, 5, 9, 9, 6.2, Math.PI / 2, hood);
+    gableHouse(E + 1, S + 1, 9, 9, 6.0, Math.PI / 2, hood);
+    seed = 4242;
+    for (let i = 0; i < 26; i++) {
+      const a = rnd() * Math.PI * 2, d = rr(30, 62);
+      const g = new THREE.Group(); g.position.set(Math.cos(a) * d, 0, Math.sin(a) * d);
+      const s = rr(0.9, 1.4);
+      if ((g.position.x > L.x1 - 1 && g.position.x < ne.x1 + 3) || (g.position.z > L.z1 - 1 && g.position.z < se.z1 + 3)) continue;
+      hood.add(g); tree(s, g, false);
+    }
+    hood.visible = neighborsEl.checked;
+
+    // dimension lines
+    dims = new THREE.Group(); dims.visible = dimsEl.checked; world.add(dims);
+    dim(L.x0, L.z1, L.x1, L.z1, 0, 3.5, `敷地 ${m1(P.site.w)} m`);
+    dim(L.x1, L.z0, L.x1, L.z1, R.ne + 4.0, 0, `敷地 ${m1(P.site.d)} m`);
+    if (planX0 > L.x0) dim(L.x0, L.z0, planX0, L.z0, 0, -2.5, `既存建物 ${m1(planX0 - L.x0)} m`);
+    dim(planX0, L.z0, L.x1, L.z0, 0, -2.5, `計画エリア ${m1(L.x1 - planX0)} m`);
+    dim(hb.x0, hb.z1, hb.x1, hb.z1, 0, 3.0, `建物 ${m1(P.house.w)} m`);
+    dim(hb.x0, hb.z0, hb.x0, hb.z1, -1.2, 0, `建物 ${m1(P.house.d)} m`);
+    dim(pk.x0, pk.z0, pk.x1, pk.z0, 0, 1.6, `駐車場 ${m1(P.parking.w)} m`);
+    dim(pk.x1, pk.z0, pk.x1, pk.z1, -1.2, 0, `駐車場 ${m1(P.parking.d)} m`);
+    dim(L.x1, gate.z0, L.x1, gate.z1, 1.2, 0, `入口 ${m1(gate.z1 - gate.z0)} m`);
+
+    // tone down sky reflections on matte surfaces; glass keeps full reflection
+    world.traverse(o => { if (o.material && o.material.isMeshStandardMaterial) o.material.envMapIntensity = o.material === M.glass ? 1.0 : 0.55; });
+    sun.shadow.camera.left = sun.shadow.camera.bottom = -Math.max(48, P.site.w + 20);
+    sun.shadow.camera.right = sun.shadow.camera.top = Math.max(48, P.site.w + 20);
+    sun.shadow.camera.updateProjectionMatrix();
+    renderSizes();
+    updateHighlight();
+  }
+
+  // ---------- size table + header ----------
+  const sizesDl = document.getElementById('sizesList'), specEl = document.getElementById('spec');
+  function renderSizes() {
+    const a = areas(), H = P.house, K = P.parking;
+    const tsubo = a.total / 3.30579;
+    const rows = [
+      ['敷地', `${m1(P.site.w)} × ${m1(P.site.d)} m ＝ ${m1(a.site)}㎡`],
+      ['　計画エリア', `${m1(a.planW)} × ${m1(P.site.d)} m ＝ ${m1(a.plan)}㎡`],
+      ['　既存建物エリア', `${m1(P.site.w - a.planW)} × ${m1(P.site.d)} m ＝ ${m1(a.exist)}㎡`],
+      ['建物外形', `${m1(H.w)} × ${m1(H.d)} m ／ 高さ ${m1(H.h + 0.2)} m`],
+      ['建築面積', `${m1(a.foot)}㎡`],
+      ['延床面積', `${m1(a.total)}㎡（${m1(tsubo)}坪）`],
+      ['　1階', `${m1(a.gf)}㎡`],
+      ['　2階', `${m1(a.uf)}㎡（吹き抜け ${m1(a.voidA)}㎡ を除く）`],
+      ['駐車場', `${m1(K.w)} × ${m1(K.d)} m ＝ ${m1(a.parking)}㎡`],
+      ['カーポート', P.carport.on ? `${m1(K.w - 0.1)} × ${m1(K.d - 0.1)} m ／ 高さ ${P.carport.h.toFixed(2)} m` : 'なし'],
+      ['玄関ひさし', a.canopy.ok ? `${m1(a.canopy.x1 - a.canopy.x0)} × ${m1(a.canopy.z1 - a.canopy.z0)} m` : 'なし'],
+      ['入口', `幅 ${m1(a.gate.z1 - a.gate.z0)} m（北東）`],
+      ['庭（人工芝）', `約 ${Math.round(a.garden / 5) * 5}㎡`],
+      ['フェンス', `木製 H${P.fence.h.toFixed(2)} m ／ 延長 ${m1(a.fenceLen)} m`],
+      ['道路', `北東 幅員 ${m1(P.roads.ne)} m ／ 南東 幅員 ${m1(P.roads.se)} m`]
+    ];
+    sizesDl.replaceChildren(...rows.flatMap(([k, v]) => {
+      const dt = document.createElement('dt'), dd = document.createElement('dd');
+      dt.textContent = k; dd.textContent = v; return [dt, dd];
+    }));
+    specEl.textContent = `敷地 ${Math.round(a.site)}㎡ ／ 2階建て 延床 ${m1(a.total)}㎡（約${Math.round(tsubo)}坪）／ LDK吹き抜け ／ 駐車場 ${m1(K.w)} × ${m1(K.d)} m`;
+  }
+
+  // ---------- editor ----------
+  const R2 = () => ({ x: P.site.w / 2 + 2, z: P.site.d / 2 + 2 });
+  const FIELDS = {
+    house:    { label: '建物', drag: 'xz', f: () => [['x', '位置（北東へ＋）', -R2().x, R2().x, 0.1], ['z', '位置（南東へ＋）', -R2().z, R2().z, 0.1], ['w', '幅（正面）', 7, 14, 0.1], ['d', '奥行', 6, 12, 0.1], ['h', '高さ', 5.6, 8, 0.1]] },
+    parking:  { label: '駐車場', drag: 'xz', f: () => [['x', '位置（北東へ＋）', -R2().x, R2().x, 0.1], ['z', '位置（南東へ＋）', -R2().z, R2().z, 0.1], ['w', '幅', 2.6, 9, 0.1], ['d', '奥行', 5, 18, 0.1]] },
+    carport:  { label: 'カーポート・ひさし', f: () => [['on', 'カーポート', 'bool'], ['h', '屋根の高さ', 2.2, 3.2, 0.05], ['canopy', '玄関ひさし', 'bool'], ['cd', 'ひさしの出', 0.8, 4, 0.1]] },
+    gate:     { label: '入口', drag: 'z', f: () => [['z', '位置（北東辺）', -P.site.d / 2, P.site.d / 2, 0.1], ['w', '幅', 1, 8, 0.1]] },
+    site:     { label: '敷地', f: () => [['w', '幅（南東辺）', 15, 40, 0.1], ['d', '奥行（北東辺）', 15, 40, 0.1]] },
+    existing: { label: '既存建物エリア', f: () => [['w', '幅（南西側）', 0, 15, 0.1]] },
+    fence:    { label: 'フェンス', f: () => [['h', '高さ', 0.8, 2.4, 0.05]] },
+    roads:    { label: '道路', f: () => [['ne', '北東道路の幅員', 4, 12, 0.5], ['se', '南東道路の幅員', 4, 12, 0.5]] },
+    ex1:      { label: '既存建物A（陸屋根）', drag: 'xz', f: () => [['x', '位置（北東へ＋）', -R2().x, R2().x, 0.1], ['z', '位置（南東へ＋）', -R2().z, R2().z, 0.1], ['w', '幅', 3, 14, 0.1], ['d', '奥行', 3, 14, 0.1], ['h', '高さ', 2.5, 10, 0.1]] },
+    ex2:      { label: '既存建物B（切妻）', drag: 'xz', f: () => [['x', '位置（北東へ＋）', -R2().x, R2().x, 0.1], ['z', '位置（南東へ＋）', -R2().z, R2().z, 0.1], ['w', '幅', 3, 14, 0.1], ['d', '奥行', 3, 14, 0.1], ['h', '軒の高さ', 2.5, 10, 0.1]] }
+  };
+  const treeField = { drag: 'xz', f: () => [['x', '位置（北東へ＋）', -R2().x, R2().x, 0.1], ['z', '位置（南東へ＋）', -R2().z, R2().z, 0.1], ['s', '大きさ', 0.5, 1.6, 0.05]] };
+  const fieldsFor = k => (k.startsWith('tree') ? { ...treeField, label: '木 ' + (+k.slice(4) + 1) } : FIELDS[k]);
+  const dataFor = k => (k.startsWith('tree') ? P.trees[+k.slice(4)] : P[k]);
+  const defaultFor = k => (k.startsWith('tree') ? DEFAULTS.trees[+k.slice(4)] : DEFAULTS[k]);
+
+  const partSel = document.getElementById('partSel'), fieldsEl = document.getElementById('fields');
+  let selected = 'house';
+  function fillPartOptions() {
+    const keys = [...Object.keys(FIELDS), ...P.trees.map((_, i) => 'tree' + i)];
+    partSel.replaceChildren(...keys.map(k => { const o = document.createElement('option'); o.value = k; o.textContent = fieldsFor(k).label; return o; }));
+    if (!keys.includes(selected)) selected = 'house';
+    partSel.value = selected;
+  }
+  let rebuildQueued = false;
+  function queueRebuild() {
+    if (rebuildQueued) return;
+    rebuildQueued = true;
+    requestAnimationFrame(() => { rebuildQueued = false; build(); persist(); });
+  }
+  function renderFields() {
+    const d = dataFor(selected), spec = fieldsFor(selected);
+    fieldsEl.replaceChildren();
+    spec.f().forEach(([key, text, min, max, step]) => {
+      const row = document.createElement('div'); row.className = 'field';
+      const id = `f-${key}`;
+      if (min === 'bool') {
+        const lab = document.createElement('label'); lab.className = 'toggle';
+        const cb = document.createElement('input'); cb.type = 'checkbox'; cb.id = id; cb.checked = d[key];
+        cb.addEventListener('change', () => { d[key] = cb.checked; queueRebuild(); });
+        lab.append(cb, ' ' + text); row.append(lab);
+      } else {
+        const lab = document.createElement('label'); lab.htmlFor = id; lab.textContent = text;
+        const num = document.createElement('input'); num.type = 'number'; num.id = id; num.min = min; num.max = max; num.step = step; num.value = (+d[key]).toFixed(2).replace(/\.?0+$/, '');
+        const unit = document.createElement('span'); unit.className = 'unit'; unit.textContent = key === 's' ? '倍' : 'm';
+        const rng = document.createElement('input'); rng.type = 'range'; rng.min = min; rng.max = max; rng.step = step; rng.value = d[key];
+        rng.setAttribute('aria-label', text);
+        const set = v => { v = Math.min(max, Math.max(min, +v)); if (!isFinite(v)) return; d[key] = Math.round(v / step) * step; queueRebuild(); };
+        rng.addEventListener('input', () => { num.value = rng.value; set(rng.value); });
+        num.addEventListener('change', () => { set(num.value); rng.value = d[key]; num.value = (+d[key]).toFixed(2).replace(/\.?0+$/, ''); });
+        const top = document.createElement('div'); top.className = 'field-top';
+        const numWrap = document.createElement('span'); numWrap.className = 'num'; numWrap.append(num, unit);
+        top.append(lab, numWrap);
+        row.append(top, rng);
+      }
+      fieldsEl.append(row);
+    });
+    const hint = document.getElementById('dragHint');
+    hint.hidden = !spec.drag;
+  }
+  function select(k) {
+    selected = k; partSel.value = k; renderFields(); updateHighlight();
+  }
+  partSel.addEventListener('change', () => select(partSel.value));
+  document.getElementById('resetPart').addEventListener('click', () => {
+    const d = dataFor(selected), def = defaultFor(selected);
+    if (d && def) Object.assign(d, clone(def));
+    renderFields(); queueRebuild();
+  });
+  document.getElementById('resetAll').addEventListener('click', () => {
+    P = clone(DEFAULTS); fillPartOptions(); renderFields(); queueRebuild();
+  });
+  document.getElementById('addTree').addEventListener('click', () => {
+    const { planX0, L } = derive();
+    P.trees.push({ x: +((planX0 + L.x1) / 2).toFixed(1), z: +(L.z1 - 5).toFixed(1), s: 0.9 });
+    fillPartOptions(); select('tree' + (P.trees.length - 1)); queueRebuild();
+  });
+  document.getElementById('removeTree').addEventListener('click', () => {
+    if (!selected.startsWith('tree')) return;
+    P.trees.splice(+selected.slice(4), 1);
+    selected = 'house'; fillPartOptions(); renderFields(); queueRebuild();
+  });
+
+  // highlight of the selected part
+  const highlight = new THREE.BoxHelper(undefined, 0xe0782f);
+  highlight.material.depthTest = false; highlight.renderOrder = 30; highlight.visible = false;
+  scene.add(highlight);
+  function updateHighlight() {
+    const g = parts[selected];
+    document.getElementById('removeTree').hidden = !selected.startsWith('tree');
+    if (!g || !editOpen()) { highlight.visible = false; return; }
+    highlight.setFromObject(g); highlight.visible = true;
+  }
+
+  // picking + dragging in the 3D view
+  const ray = new THREE.Raycaster(), ndc = new THREE.Vector2(), ground = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+  function pickPart(ev) {
+    const r = renderer.domElement.getBoundingClientRect();
+    ndc.set(((ev.clientX - r.left) / r.width) * 2 - 1, -((ev.clientY - r.top) / r.height) * 2 + 1);
+    ray.setFromCamera(ndc, camera);
+    const hits = ray.intersectObjects(Object.values(parts), true);
+    for (const h of hits) {
+      let o = h.object;
+      while (o && !o.userData.part) o = o.parent;
+      if (o) return o.userData.part;
+    }
+    return null;
+  }
+  function groundPoint(ev) {
+    const r = renderer.domElement.getBoundingClientRect();
+    ndc.set(((ev.clientX - r.left) / r.width) * 2 - 1, -((ev.clientY - r.top) / r.height) * 2 + 1);
+    ray.setFromCamera(ndc, camera);
+    const p = new THREE.Vector3();
+    return ray.ray.intersectPlane(ground, p) ? p : null;
+  }
+  let drag = null, down = null;
+  stage.addEventListener('pointerdown', ev => {
+    if (ev.button !== 0) return;
+    down = { x: ev.clientX, y: ev.clientY };
+    if (!editOpen()) return;
+    const k = pickPart(ev);
+    const spec = k && fieldsFor(k);
+    if (k && k === selected && spec.drag) {
+      const g0 = groundPoint(ev); if (!g0) return;
+      drag = { key: k, start: g0, pos: parts[k].position.clone(), mode: spec.drag, dx: 0, dz: 0 };
+      controls.enabled = false;
+      ev.stopPropagation();
+      stage.setPointerCapture(ev.pointerId);
+    }
+  }, true);
+  stage.addEventListener('pointermove', ev => {
+    if (!drag) return;
+    const p = groundPoint(ev); if (!p) return;
+    drag.dx = drag.mode === 'z' ? 0 : p.x - drag.start.x;
+    drag.dz = p.z - drag.start.z;
+    parts[drag.key].position.set(drag.pos.x + drag.dx, 0, drag.pos.z + drag.dz);
+    highlight.setFromObject(parts[drag.key]);
+  });
+  stage.addEventListener('pointerup', ev => {
+    if (drag) {
+      const d = dataFor(drag.key), r1 = v => Math.round(v * 10) / 10;
+      if (drag.mode !== 'z') d.x = r1(d.x + drag.dx);
+      d.z = r1(d.z + drag.dz);
+      drag = null; controls.enabled = true;
+      renderFields(); queueRebuild();
+      return;
+    }
+    if (down && Math.hypot(ev.clientX - down.x, ev.clientY - down.y) < 5 && editOpen()) {
+      const k = pickPart(ev);
+      if (k) select(k);
+    }
+    down = null;
+  });
+
+  // edit panel open/close
+  const editSheet = document.getElementById('editSheet'), editToggle = document.getElementById('editToggle');
+  const editOpen = () => !editSheet.hidden;
+  function setEdit(open) {
+    editSheet.hidden = !open;
+    editToggle.setAttribute('aria-pressed', open);
+    editToggle.textContent = open ? '編集を閉じる' : 'パーツを編集';
+    updateHighlight();
+  }
+  editToggle.addEventListener('click', () => setEdit(!editOpen()));
+  document.getElementById('editClose').addEventListener('click', () => setEdit(false));
+
+  // ---------- export: image, prompt, settings ----------
+  const toast = document.getElementById('toast');
+  let toastTimer = 0;
+  function say(msg) { toast.textContent = msg; toast.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => { toast.hidden = true; }, 3200); }
+  let downloads = null;
+  if (window.claude && window.claude.use) window.claude.use('downloads').then(d => { downloads = d; }).catch(() => {});
+  const stamp = () => { const d = new Date(); return `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}-${String(d.getHours()).padStart(2, '0')}${String(d.getMinutes()).padStart(2, '0')}`; };
+
+  function capture(scale) {
+    const hv = highlight.visible; highlight.visible = false;
+    const pr = renderer.getPixelRatio();
+    const w = stage.clientWidth, h = stage.clientHeight;
+    const target = Math.min(scale, 4096 / Math.max(w, h));
+    renderer.setPixelRatio(target);
+    renderer.setSize(w, h, false);
+    renderer.render(scene, camera);
+    return new Promise(res => renderer.domElement.toBlob(b => {
+      renderer.setPixelRatio(pr); renderer.setSize(w, h, false);
+      highlight.visible = hv;
+      res(b);
+    }, 'image/png'));
+  }
+  const overlay = document.getElementById('shotOverlay'), shotImg = document.getElementById('shotImg');
+  let shotUrl = '';
+  async function offerFile(filename, data, fallback) {
+    if (downloads) {
+      try { await downloads.save({ filename, data }); say('保存しました'); return; }
+      catch (e) { if (e && e.code === 'declined') { say('保存をキャンセルしました'); return; } }
+    }
+    fallback();
+  }
+  document.getElementById('saveImage').addEventListener('click', async () => {
+    const scale = +document.getElementById('imgScale').value;
+    const blob = await capture(scale);
+    if (!blob) { say('画像を作れませんでした。もう一度お試しください'); return; }
+    await offerFile(`外観パース-${stamp()}.png`, blob, () => {
+      if (shotUrl) URL.revokeObjectURL(shotUrl);
+      shotUrl = URL.createObjectURL(blob);
+      shotImg.src = shotUrl; overlay.hidden = false;
+    });
+  });
+  document.getElementById('shotClose').addEventListener('click', () => { overlay.hidden = true; });
+
+  const VIEW_PHRASE = {
+    aerial: 'Aerial drone photograph from about 35 m height, oblique angle, showing the whole plot, fences, carport and both roads.',
+    front: 'Eye-level photograph from the garden, 1.6 m camera height, 24 mm lens, front facade centred, vertical lines kept straight.',
+    garden: 'Eye-level photograph from the lawn looking toward the entrance and carport, shallow foreground of turf and tree trunks.',
+    road: 'Street-level photograph from the north-east road, showing the gate opening, fence and carport.',
+    top: 'Top-down orthographic drone photograph, north up, realistic site-plan look.'
+  };
+  let currentView = 'aerial';
+  function buildPrompt() {
+    const a = areas(), H = P.house, K = P.parking;
+    return [
+      'Use the attached 3D massing render as a strict reference. Keep the exact composition, camera angle, building geometry, layout and proportions — only replace materials, vegetation and lighting to make it a photorealistic architectural photograph.',
+      '',
+      `Building: a minimalist two-storey Japanese house, a simple rectangular box ${m1(H.w)} m wide, ${m1(H.d)} m deep and ${m1(H.h + 0.2)} m high, flat roof with a slim parapet. Charcoal-black galvalume horizontal lap siding with fine reveal lines. The upper floor is a framed volume with a thin black picture-frame trim, slightly cantilevered over the ground floor. Warm orange-brown horizontal cedar cladding on the left of the ground floor and beside the entrance. Upper windows: two narrow horizontal slit windows, one three-pane window, one wide slit window, black aluminium frames. Black entrance door with a tall frosted-glass sidelight; frosted window in the centre of the ground floor. In front: board-formed exposed concrete walls (one low, one tall) with black river rocks and grey gravel, two concrete steps and a concrete path. A lower single-height annex on the parking side.`,
+      '',
+      `Site: ${m1(P.site.w)} m × ${m1(P.site.d)} m plot (${Math.round(a.site)} m²). Concrete parking area ${m1(K.w)} m × ${m1(K.d)} m beside the house` +
+        (P.carport.on ? `, covered by a flat-roof black carport attached to the house${a.canopy.ok ? ', its roof continuous with the entrance canopy' : ''}` : '') +
+        `, a black SUV and a silver SUV parked. Artificial turf garden (about ${Math.round(a.garden / 5) * 5} m²) with multi-stem deciduous trees (Japanese ash, Japanese maple) and low clipped hedges along the fence. ${P.fence.h.toFixed(1)} m dark-brown horizontal wooden slat fence with black posts on the north-west, north-east and south-east sides, with a ${m1(a.gate.z1 - a.gate.z0)} m opening on the north-east road side. Existing white houses on the same plot to the south-west, no fence between them. Corner lot with asphalt roads and sidewalks on the north-east (${m1(P.roads.ne)} m) and south-east (${m1(P.roads.se)} m), Japanese suburban neighbourhood.`,
+      '',
+      `Lighting & style: sunny afternoon around ${fmt(+hourEl.value)}, soft warm sunlight, long natural shadows, light clouds in a blue sky. Architectural magazine photography, ultra-detailed, realistic materials, natural colour grading, sharp focus, 8K.`,
+      '',
+      VIEW_PHRASE[currentView]
+    ].join('\n');
+  }
+  async function copyText(text, okMsg, fallbackTitle) {
+    try { await navigator.clipboard.writeText(text); say(okMsg); }
+    catch (e) { openTextDialog(fallbackTitle, text, false); }
+  }
+  const textDlg = document.getElementById('textDlg'), textArea = document.getElementById('textArea'), textTitle = document.getElementById('textTitle'), textApply = document.getElementById('textApply');
+  function openTextDialog(title, text, importing) {
+    textTitle.textContent = title; textArea.value = text; textArea.readOnly = !importing;
+    textApply.hidden = !importing; textDlg.hidden = false;
+    textArea.focus(); if (!importing) textArea.select();
+  }
+  document.getElementById('textClose').addEventListener('click', () => { textDlg.hidden = true; });
+  textApply.addEventListener('click', () => {
+    try {
+      P = merge(DEFAULTS, JSON.parse(textArea.value));
+      textDlg.hidden = true; fillPartOptions(); renderFields(); queueRebuild(); say('配置を読み込みました');
+    } catch (e) { say('読み込めませんでした。書き出したJSONをそのまま貼り付けてください'); }
+  });
+  document.getElementById('copyPrompt').addEventListener('click', () => copyText(buildPrompt(), 'プロンプトをコピーしました', 'プロンプト（選択してコピーしてください）'));
+  document.getElementById('exportJson').addEventListener('click', () => {
+    const json = JSON.stringify(P, null, 2);
+    offerFile(`外観パース-配置-${stamp()}.json`, json, () => copyText(json, '配置データをコピーしました', '配置データ（選択してコピーしてください）'));
+  });
+  document.getElementById('importJson').addEventListener('click', () => openTextDialog('配置データを貼り付けて「読み込む」', '', true));
 
   // ---------- sun / time of day ----------
   const sunDir = new THREE.Vector3();
@@ -683,37 +1181,43 @@
     rebuildEnv();
   }
 
-  // ---------- cameras ----------
-  const VIEWS = {
-    aerial: { p: [-14, 38, 32], t: [1, 0, -1] },
-    front:  { p: [2.6, 1.6, 11.3], t: [2.0, 3.0, -8] },
-    garden: { p: [-2.4, 1.7, 11.2], t: [6, 2.6, -5] },
-    road:   { p: [19.5, 1.6, 9.5], t: [5, 2.4, -5] },
-    top:    { p: [-0.35, 78, 0.35], t: [0, 0, 0] }           // offset to the south so north is up
-  };
+  // ---------- cameras (follow the current layout) ----------
+  function viewFor(name) {
+    const { L, hb, pk, gate } = derive();
+    const k = Math.max(P.site.w, P.site.d) / 25;
+    const hx = P.house.x;
+    switch (name) {
+      case 'front':  return { p: [hx + 0.6, 1.6, L.z1 - 0.7], t: [hx, 3.0, hb.z1 - 4.8] };
+      case 'garden': return { p: [derive().planX0 + 0.6, 1.7, L.z1 - 0.8], t: [pk.x0 - 1, 2.6, hb.z1 - 1.8] };
+      case 'road':   return { p: [L.x1 + 7, 1.6, (gate.z0 + gate.z1) / 2 + 7.5], t: [(hb.x1 + pk.x0) / 2, 2.4, hb.z1 - 2] };
+      case 'top':    return { p: [-0.35, 78 * k, 0.35], t: [0, 0, 0] };   // offset to the south so north is up
+      default:       return { p: [-14 * k, 38 * k, 32 * k], t: [1, 0, -1] };
+    }
+  }
   let tween = null;
   function goTo(name, instant) {
-    const v = VIEWS[name];
+    currentView = name;
+    const v = viewFor(name);
     const to = { p: new THREE.Vector3(...v.p), t: new THREE.Vector3(...v.t) };
+    document.querySelectorAll('#views button').forEach(b => b.setAttribute('aria-pressed', b.dataset.view === name));
     if (instant) { camera.position.copy(to.p); controls.target.copy(to.t); controls.update(); return; }
     tween = { from: { p: camera.position.clone(), t: controls.target.clone() }, to, start: performance.now(), dur: 1400 };
-    document.querySelectorAll('#views button').forEach(b => b.setAttribute('aria-pressed', b.dataset.view === name));
   }
   const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
   document.getElementById('views').addEventListener('click', e => {
     const b = e.target.closest('button'); if (!b) return;
     goTo(b.dataset.view, reduceMotion);
-    if (b.dataset.view === 'top') { dimsEl.checked = true; dims.visible = true; }
-    document.querySelectorAll('#views button').forEach(x => x.setAttribute('aria-pressed', x === b));
+    if (b.dataset.view === 'top') { dimsEl.checked = true; if (dims) dims.visible = true; }
   });
   controls.addEventListener('start', () => { tween = null; });
 
   const hourEl = document.getElementById('hour'), hourOut = document.getElementById('hourOut');
   const fmt = h => `${Math.floor(h)}:${String(Math.round((h % 1) * 60)).padStart(2, '0')}`;
   hourEl.addEventListener('input', () => { const h = +hourEl.value; hourOut.textContent = fmt(h); setHour(h); });
-  document.getElementById('neighbors').addEventListener('change', e => { hood.visible = e.target.checked; });
+  const neighborsEl = document.getElementById('neighbors');
+  neighborsEl.addEventListener('change', e => { if (hood) hood.visible = e.target.checked; });
   const dimsEl = document.getElementById('dims');
-  dimsEl.addEventListener('change', e => { dims.visible = e.target.checked; });
+  dimsEl.addEventListener('change', e => { if (dims) dims.visible = e.target.checked; });
   const sheet = document.getElementById('sheet'), col = document.getElementById('collapse');
   col.addEventListener('click', () => { const m = sheet.classList.toggle('min'); col.textContent = m ? 'パネルを開く' : 'パネルを畳む'; });
 
@@ -744,12 +1248,13 @@
     requestAnimationFrame(frame);
   }
 
-  // tone down sky reflections on matte surfaces; glass keeps full reflection
-  scene.traverse(o => { if (o.material && o.material.isMeshStandardMaterial) o.material.envMapIntensity = o.material === M.glass ? 1.0 : 0.55; });
-
   resize();
   setHour(+hourEl.value);
+  fillPartOptions();
+  build();
+  renderFields();
   goTo('aerial', true);
+  setEdit(innerWidth >= 900);
   if (innerHeight > 1000) document.getElementById('sizes').open = true;
   if (innerWidth < 520) { sheet.classList.add('min'); col.textContent = 'パネルを開く'; }
   requestAnimationFrame(frame);
